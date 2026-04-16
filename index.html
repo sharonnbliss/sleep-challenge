@@ -1,11 +1,36 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sleep Challenge</title>
-</head>
-<body>
-    <h1>Welcome to Sleep Challenge</h1>
-</body>
-</html>
+import React, { useState } from 'react';
+import './App.css';
+
+function App() {
+  const [hours, setHours] = useState(0);
+  const [trackingData, setTrackingData] = useState([]);
+
+  const trackSleep = () => {
+    const newEntry = { date: new Date().toISOString().split('T')[0], hours };
+    setTrackingData([...trackingData, newEntry]);
+    setHours(0);
+  };
+
+  return (
+    <div className="App">
+      <h1>Chinese Sleep Challenge Tracker</h1>
+      <div>
+        <input
+          type="number"
+          value={hours}
+          onChange={(e) => setHours(e.target.value)}
+          placeholder="Enter hours of sleep"
+        />
+        <button onClick={trackSleep}>Track Sleep</button>
+      </div>
+      <h2>Tracking Data</h2>
+      <ul>
+        {trackingData.map((entry, index) => (
+          <li key={index}>{entry.date}: {entry.hours} hours</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+export default App;
