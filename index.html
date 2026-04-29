@@ -35,13 +35,6 @@
             letter-spacing: 0.025em;
         }
 
-        .glass-card {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
@@ -85,6 +78,12 @@
         }
         .float-icon { animation: float 3s ease-in-out infinite; }
 
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-pop { animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.27) forwards; }
+
         input[type="date"]::-webkit-calendar-picker-indicator {
             background-color: transparent;
             padding: 5px;
@@ -102,14 +101,6 @@
             return <i data-lucide={name} className={className} style={{ width: size, height: size }}></i>;
         };
 
-        const QUOTES = [
-            "優質的睡眠是通往健康的橋樑。",
-            "今晚的放鬆，是為了明天的衝刺。",
-            "休息不是浪費時間，是為了走更長遠的路。",
-            "心靜下來，身體自然會找到入睡的節奏。",
-            "日落而息，讓靈魂在夢中充電。"
-        ];
-
         const CATEGORIES = [
             {
                 id: 'daytime',
@@ -119,9 +110,9 @@
                 bgClass: 'bg-amber-50/50',
                 borderClass: 'border-amber-100',
                 items: [
-                    '固定時間起床', 
-                    '曬日光 (出外曬太陽30-60 分鐘)', 
-                    '出外做運動 (45-60 分鐘，如：慢跑、快走)'
+                    { name: '固定時間起床', hint: '即使假日也建議維持相同作息' },
+                    { name: '曬日光 (出外曬太陽30-60 分鐘)', hint: '光照有助於調節生理時鐘' },
+                    { name: '出外做運動 (45-60 分鐘，如：慢跑、快走)', hint: '適度運動能幫助晚間深層睡眠' }
                 ]
             },
             {
@@ -132,9 +123,9 @@
                 bgClass: 'bg-indigo-50/50',
                 borderClass: 'border-indigo-100',
                 items: [
-                    '聽放鬆音樂 (30-45分鐘)', 
-                    '呼吸練習 (10-15分鐘)', 
-                    '熱敷 (眼/肩/頸/背)'
+                    { name: '聽放鬆音樂 (30-45分鐘)', hint: '讓節奏慢下來，準備睡眠訊號' },
+                    { name: '呼吸練習 (10-15分鐘)', hint: '專注於深緩呼吸，放鬆神經系統' },
+                    { name: '熱敷 (眼/肩/頸/背)', hint: '提升局部循環並降低核心溫度感' }
                 ]
             }
         ];
@@ -146,7 +137,8 @@
             const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
             const [selectedTasks, setSelectedTasks] = useState(new Set());
             const [dailyLogs, setDailyLogs] = useState({});
-            const [currentQuote] = useState(() => QUOTES[Math.floor(Math.random() * QUOTES.length)]);
+            const [showSuccessToast, setShowSuccessToast] = useState(false);
+            const [activeRitual, setActiveRitual] = useState(null);
 
             useEffect(() => {
                 try {
@@ -188,10 +180,34 @@
             const currentDayNum = getDayDiff(startDate, todayStr);
             const progressPercent = Math.min(100, Math.max(0, ((currentDayNum - 1) / planDuration) * 100));
 
-            const toggleTask = (task) => {
+            const toggleTask = (taskName) => {
                 const dayLog = dailyLogs[todayStr] || [];
-                let newLog = dayLog.includes(task) ? dayLog.filter(t => t !== task) : [...dayLog, task];
+                const isCompleting = !dayLog.includes(taskName);
+                
+                // 如果是正在完成任務，開啟引導提示彈窗
+                if (isCompleting) {
+                    const foundTask = [...CATEGORIES[0].items, ...CATEGORIES[1].items].find(i => i.name === taskName);
+                    setActiveRitual(foundTask);
+                } else {
+                    // 如果是取消打勾，直接取消
+                    let newLog = dayLog.filter(t => t !== taskName);
+                    setDailyLogs({ ...dailyLogs, [todayStr]: newLog });
+                }
+            };
+
+            const confirmRitual = () => {
+                if (!activeRitual) return;
+                const taskName = activeRitual.name;
+                const dayLog = dailyLogs[todayStr] || [];
+                let newLog = [...dayLog, taskName];
+                
+                if (newLog.length === selectedTasks.size) {
+                    setShowSuccessToast(true);
+                    setTimeout(() => setShowSuccessToast(false), 3000);
+                }
+                
                 setDailyLogs({ ...dailyLogs, [todayStr]: newLog });
+                setActiveRitual(null);
             };
 
             const resetApp = () => {
@@ -233,7 +249,7 @@
                                     </div>
                                     <div className="grid grid-cols-1 gap-3">
                                         {cat.items.map(item => {
-                                            const isSelected = selectedTasks.has(item);
+                                            const isSelected = selectedTasks.has(item.name);
                                             const activeColors = cat.id === 'daytime' 
                                                 ? 'border-amber-500 bg-white shadow-md shadow-amber-100' 
                                                 : 'border-indigo-500 bg-white shadow-md shadow-indigo-100';
@@ -241,10 +257,10 @@
 
                                             return (
                                                 <div 
-                                                    key={item}
+                                                    key={item.name}
                                                     onClick={() => {
                                                         const next = new Set(selectedTasks);
-                                                        if(isSelected) next.delete(item); else next.add(item);
+                                                        if(isSelected) next.delete(item.name); else next.add(item.name);
                                                         setSelectedTasks(next);
                                                     }}
                                                     className={`p-4 rounded-2xl border-2 transition-all active-scale cursor-pointer flex items-center justify-between ${
@@ -253,7 +269,7 @@
                                                         : 'border-white/60 bg-white/40 shadow-sm hover:border-slate-200'
                                                     }`}
                                                 >
-                                                    <span className={`font-bold text-md leading-snug pr-2 ${isSelected ? 'text-slate-900' : 'text-slate-500'}`}>{item}</span>
+                                                    <span className={`font-bold text-md leading-snug pr-2 ${isSelected ? 'text-slate-900' : 'text-slate-500'}`}>{item.name}</span>
                                                     <div className={`w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center border-2 transition-all ${
                                                         isSelected ? `${checkColors} text-white scale-110 shadow-lg` : 'border-slate-200 bg-white/80'
                                                     }`}>
@@ -365,8 +381,66 @@
                 endDay.setDate(endDay.getDate() + planDuration - 1);
                 const endDateStr = endDay.toISOString().split('T')[0];
 
+                const doneCount = todayDone.length;
+                const totalCount = selectedTasks.size;
+                
+                const getStatusHint = () => {
+                    if (doneCount === 0) return "今天的挑戰開始了嗎？";
+                    if (doneCount < totalCount) return `已完成 ${doneCount}/${totalCount}，加油！`;
+                    return "今日目標全數達成！";
+                };
+
                 return (
                     <div className="animate-page flex flex-col min-h-screen bg-[#f8fafc]">
+                        {/* 成功慶祝彈窗 */}
+                        {showSuccessToast && (
+                            <div className="fixed inset-0 z-[60] flex items-center justify-center p-8 bg-slate-900/40 backdrop-blur-sm">
+                                <div className="bg-white rounded-[3rem] p-8 text-center shadow-2xl animate-pop border-4 border-emerald-100">
+                                    <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <Icon name="sparkles" size={40} />
+                                    </div>
+                                    <h3 className="text-2xl font-black text-slate-900 mb-2">全數達成！</h3>
+                                    <p className="text-slate-500 font-bold">你完成了今日所有挑戰！</p>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* 儀式引導彈窗 */}
+                        {activeRitual && (
+                            <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/60 backdrop-blur-md p-4">
+                                <div className="bg-white w-full max-w-sm rounded-[2.5rem] p-8 animate-pop shadow-2xl relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 p-6 opacity-10">
+                                        <Icon name="moon-star" size={100} />
+                                    </div>
+                                    <div className="flex flex-col items-center text-center space-y-6">
+                                        <div className="w-20 h-20 bg-indigo-100 text-indigo-600 rounded-[2rem] flex items-center justify-center">
+                                            <Icon name="sparkles" size={40} />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-2xl font-black text-slate-900 mb-3">{activeRitual.name}</h3>
+                                            <p className="text-slate-500 font-bold leading-relaxed px-4">
+                                                {activeRitual.hint}
+                                            </p>
+                                        </div>
+                                        <div className="w-full flex flex-col gap-3 pt-4">
+                                            <button 
+                                                onClick={confirmRitual}
+                                                className="w-full bg-indigo-600 text-white font-black py-4 rounded-2xl shadow-lg active-scale flex items-center justify-center gap-2"
+                                            >
+                                                完成挑戰 <Icon name="check-circle" size={20} />
+                                            </button>
+                                            <button 
+                                                onClick={() => setActiveRitual(null)}
+                                                className="w-full bg-slate-100 text-slate-400 font-bold py-3 rounded-2xl active-scale"
+                                            >
+                                                稍後再說
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         <div className="bg-white px-6 pt-12 pb-8 rounded-b-[3rem] shadow-sm border-b border-slate-100 relative overflow-hidden">
                             <div className="absolute top-0 right-0 p-8 opacity-5">
                                 <Icon name="cloud-moon" size={120} />
@@ -397,6 +471,15 @@
                                 <span>{currentDayNum < 1 ? 0 : Math.round(progressPercent)}%</span>
                                 <span>終點</span>
                             </div>
+
+                            {!isFinished && currentDayNum >= 1 && (
+                                <div className={`mt-6 p-4 rounded-2xl flex items-center gap-3 border transition-all ${
+                                    doneCount === totalCount ? 'bg-emerald-50 border-emerald-100 text-emerald-700' : 'bg-indigo-50 border-indigo-100 text-indigo-700'
+                                }`}>
+                                    <Icon name={doneCount === totalCount ? "award" : "check-square"} size={18} />
+                                    <p className="text-xs font-bold">{getStatusHint()}</p>
+                                </div>
+                            )}
                         </div>
 
                         <div className="flex-1 p-6 overflow-y-auto no-scrollbar pb-24">
@@ -424,35 +507,28 @@
                                 </div>
                             ) : (
                                 <div className="space-y-6">
-                                    <div className="glass-card p-5 rounded-3xl border border-indigo-100/50 shadow-sm">
-                                        <div className="flex gap-3">
-                                            <Icon name="quote" className="text-indigo-400 flex-shrink-0" size={20} />
-                                            <p className="text-slate-600 font-medium italic text-sm leading-relaxed">{currentQuote}</p>
-                                        </div>
-                                    </div>
-
                                     <div className="space-y-4">
                                         <h3 className="text-lg font-black text-slate-800 flex items-center gap-2">
                                             <Icon name="list-checks" className="text-indigo-500" />
                                             今日挑戰任務
                                         </h3>
-                                        {Array.from(selectedTasks).map(task => {
-                                            const done = todayDone.includes(task);
+                                        {Array.from(selectedTasks).map(taskName => {
+                                            const done = todayDone.includes(taskName);
                                             return (
                                                 <div 
-                                                    key={task}
-                                                    onClick={() => toggleTask(task)}
+                                                    key={taskName}
+                                                    onClick={() => toggleTask(taskName)}
                                                     className={`p-5 rounded-2xl flex items-center gap-4 transition-all active-scale cursor-pointer border-2 ${
-                                                        done ? 'bg-emerald-50/50 border-emerald-100' : 'bg-white border-white shadow-sm'
+                                                        done ? 'bg-emerald-50/50 border-emerald-100' : 'bg-white border-white shadow-sm hover:border-indigo-50'
                                                     }`}
                                                 >
-                                                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-colors flex-shrink-0 ${
-                                                        done ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-300'
+                                                    <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all flex-shrink-0 ${
+                                                        done ? 'bg-emerald-500 text-white shadow-lg' : 'bg-slate-50 text-slate-300 border border-slate-100'
                                                     }`}>
-                                                        <Icon name={done ? "check" : "circle"} size={20} />
+                                                        <Icon name={done ? "check" : "square"} size={24} />
                                                     </div>
                                                     <span className={`text-lg font-bold flex-1 leading-snug ${done ? 'text-emerald-900/50 line-through' : 'text-slate-700'}`}>
-                                                        {task}
+                                                        {taskName}
                                                     </span>
                                                 </div>
                                             );
