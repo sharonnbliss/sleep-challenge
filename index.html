@@ -83,6 +83,18 @@
         }
         .animate-pop { animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.27) forwards; }
 
+        @keyframes shake {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-5deg); }
+            75% { transform: rotate(5deg); }
+        }
+        .animate-shake { animation: shake 0.5s ease-in-out infinite; }
+
+        .overlay-blur {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(10px);
+        }
+
         input[type="date"]::-webkit-calendar-picker-indicator {
             background-color: transparent;
             padding: 5px;
@@ -138,7 +150,6 @@
             }
         ];
 
-        // 挑戰日數的主題顏色映射
         const DURATION_THEMES = {
             7: { 
                 name: 'emerald', 
@@ -173,12 +184,15 @@
             const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
             const [selectedTasks, setSelectedTasks] = useState(new Set());
             const [dailyLogs, setDailyLogs] = useState({});
+            const [taskAlarms, setTaskAlarms] = useState({}); // 新增：儲存任務鬧鐘
             const [showSuccessToast, setShowSuccessToast] = useState(false);
             const [activeRitual, setActiveRitual] = useState(null);
+            const [alarmSettingTask, setAlarmSettingTask] = useState(null); // 當前正在設定鬧鐘的任務
+            const [triggeredAlarm, setTriggeredAlarm] = useState(null); // 當前跳出的鬧鐘提醒
 
             useEffect(() => {
                 try {
-                    const saved = localStorage.getItem('SleepApp_V2');
+                    const saved = localStorage.getItem('SleepApp_V2_Alarm');
                     if (saved) {
                         const data = JSON.parse(saved);
                         if (data.appMode) setAppMode(data.appMode);
@@ -186,6 +200,7 @@
                         if (data.startDate) setStartDate(data.startDate);
                         if (data.selectedTasks) setSelectedTasks(new Set(data.selectedTasks));
                         if (data.dailyLogs) setDailyLogs(data.dailyLogs);
+                        if (data.taskAlarms) setTaskAlarms(data.taskAlarms);
                         if (data.selectedTasks && data.selectedTasks.length > 0 && data.appMode === 'setup') {
                             setSetupStep(2);
                         }
@@ -195,13 +210,32 @@
 
             useEffect(() => {
                 try {
-                    localStorage.setItem('SleepApp_V2', JSON.stringify({
-                        appMode, planDuration, startDate, dailyLogs,
+                    localStorage.setItem('SleepApp_V2_Alarm', JSON.stringify({
+                        appMode, planDuration, startDate, dailyLogs, taskAlarms,
                         selectedTasks: Array.from(selectedTasks)
                     }));
                 } catch (e) {}
                 if (window.lucide) window.lucide.createIcons();
-            }, [appMode, planDuration, startDate, selectedTasks, dailyLogs, activeRitual]);
+            }, [appMode, planDuration, startDate, selectedTasks, dailyLogs, activeRitual, taskAlarms, alarmSettingTask, triggeredAlarm]);
+
+            // 鬧鐘偵測邏輯
+            useEffect(() => {
+                const timer = setInterval(() => {
+                    if (appMode !== 'tracking') return;
+                    const now = new Date();
+                    const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+                    const todayStr = new Date().toISOString().split('T')[0];
+                    const todayDone = dailyLogs[todayStr] || [];
+
+                    Object.entries(taskAlarms).forEach(([task, time]) => {
+                        // 如果時間到了，且任務還沒做，且該任務不是目前正跳出的提醒
+                        if (time === currentTime && !todayDone.includes(task) && triggeredAlarm !== task) {
+                            setTriggeredAlarm(task);
+                        }
+                    });
+                }, 10000); // 每 10 秒檢查一次
+                return () => clearInterval(timer);
+            }, [taskAlarms, dailyLogs, appMode, triggeredAlarm]);
 
             const todayStr = new Date().toISOString().split('T')[0];
             const getDayDiff = (start, current) => {
@@ -238,6 +272,7 @@
                 }
                 setDailyLogs({ ...dailyLogs, [todayStr]: newLog });
                 setActiveRitual(null);
+                setTriggeredAlarm(null); // 如果是從提醒進來的，完成後關閉提醒
             };
 
             const resetApp = () => {
@@ -246,6 +281,7 @@
                     setSetupStep(1);
                     setDailyLogs({});
                     setSelectedTasks(new Set());
+                    setTaskAlarms({});
                     setStartDate(new Date().toISOString().split('T')[0]);
                 }
             };
@@ -382,13 +418,63 @@
                 const endDay = new Date(startDate);
                 endDay.setDate(endDay.getDate() + planDuration - 1);
                 const endDateStr = endDay.toISOString().split('T')[0];
-                const doneCount = todayDone.length;
-                const totalCount = selectedTasks.size;
 
                 const activeTheme = activeRitual ? (TASK_THEMES[activeRitual.name] || { color: 'slate', icon: 'sparkles', bg: 'bg-slate-50', text: 'text-slate-600', ring: 'ring-slate-100' }) : null;
 
                 return (
                     <div className="animate-page flex flex-col min-h-screen bg-[#f8fafc]">
+                        {/* 鬧鐘提醒彈窗 */}
+                        {triggeredAlarm && (
+                            <div className="fixed inset-0 z-[100] overlay-blur flex items-center justify-center p-6">
+                                <div className="bg-white w-full max-w-xs rounded-[2.5rem] p-8 text-center animate-pop shadow-2xl">
+                                    <div className={`w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center animate-shake ${currentTheme.bg} ${currentTheme.fill.replace('bg-', 'text-')}`}>
+                                        <Icon name="bell" size={40} />
+                                    </div>
+                                    <h2 className="text-slate-400 font-black text-xs tracking-widest uppercase mb-2">任務提醒</h2>
+                                    <h3 className="text-2xl font-black text-slate-800 mb-8">{triggeredAlarm}</h3>
+                                    <button 
+                                        onClick={() => {
+                                            const taskInfo = [...CATEGORIES[0].items, ...CATEGORIES[1].items].find(i => i.name === triggeredAlarm);
+                                            setActiveRitual(taskInfo);
+                                        }}
+                                        className={`w-full py-4 rounded-2xl text-white font-black shadow-lg mb-3 active-scale ${currentTheme.fill}`}
+                                    >
+                                        現在就去做
+                                    </button>
+                                    <button onClick={() => setTriggeredAlarm(null)} className="text-slate-300 font-bold">稍後提醒</button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* 設定鬧鐘時間彈窗 */}
+                        {alarmSettingTask && (
+                            <div className="fixed inset-0 z-[90] overlay-blur flex items-center justify-center p-6">
+                                <div className="bg-white w-full max-w-xs rounded-[2.5rem] p-8 animate-pop shadow-2xl">
+                                    <h3 className="text-xl font-black text-slate-800 mb-1 text-center">設定提醒時間</h3>
+                                    <p className="text-slate-400 text-xs font-bold text-center mb-6">{alarmSettingTask}</p>
+                                    <input 
+                                        type="time" 
+                                        defaultValue={taskAlarms[alarmSettingTask] || "08:00"}
+                                        id="timePicker"
+                                        className="w-full text-4xl font-black text-center py-4 bg-slate-50 rounded-2xl mb-6 text-indigo-600 focus:outline-none"
+                                    />
+                                    <div className="flex flex-col gap-2">
+                                        <button 
+                                            onClick={() => {
+                                                const timeVal = document.getElementById('timePicker').value;
+                                                setTaskAlarms({...taskAlarms, [alarmSettingTask]: timeVal});
+                                                setAlarmSettingTask(null);
+                                            }}
+                                            className={`w-full py-4 rounded-xl text-white font-black active-scale ${currentTheme.fill}`}
+                                        >
+                                            儲存設定
+                                        </button>
+                                        <button onClick={() => setAlarmSettingTask(null)} className="py-2 text-slate-400 font-bold">取消</button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         {showSuccessToast && (
                             <div className="fixed inset-0 z-[60] flex items-center justify-center p-8 bg-slate-900/40 backdrop-blur-sm">
                                 <div className={`bg-white rounded-[3rem] p-8 text-center shadow-2xl animate-pop border-4 ${currentTheme.border}`}>
@@ -404,7 +490,6 @@
                         {activeRitual && activeTheme && (
                             <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/60 backdrop-blur-md p-4">
                                 <div className="bg-white w-full max-w-sm rounded-[3rem] p-8 animate-pop shadow-2xl relative overflow-hidden">
-                                    
                                     <div className="flex flex-col items-center text-center space-y-6 relative z-10">
                                         <div className={`w-28 h-28 ${activeTheme.bg} ${activeTheme.text} rounded-[2.5rem] flex items-center justify-center float-icon shadow-inner ring-8 ${activeTheme.ring} relative overflow-hidden`}>
                                             <div className="absolute inset-0 flex items-center justify-center opacity-10 rotate-12 scale-150">
@@ -412,14 +497,12 @@
                                             </div>
                                             <Icon name={activeTheme.icon} size={52} className="relative z-10" />
                                         </div>
-                                        
                                         <div>
                                             <h3 className="text-2xl font-black text-slate-900 mb-6">{activeRitual.name}</h3>
                                             <p className="text-slate-500 font-bold leading-relaxed px-4">
                                                 {activeRitual.hint}
                                             </p>
                                         </div>
-                                        
                                         <div className="w-full flex flex-col gap-3 pt-4">
                                             <button 
                                                 onClick={confirmRitual}
@@ -472,13 +555,31 @@
                                         {Array.from(selectedTasks).map(taskName => {
                                             const done = todayDone.includes(taskName);
                                             const theme = TASK_THEMES[taskName] || { icon: 'circle' };
+                                            const alarmTime = taskAlarms[taskName];
                                             return (
-                                                <div key={taskName} onClick={() => toggleTask(taskName)} className={`p-5 rounded-3xl flex items-center gap-4 transition-all active-scale cursor-pointer border-2 ${done ? `${currentTheme.bg} ${currentTheme.border}` : 'bg-white border-white shadow-sm hover:border-slate-100'}`}>
-                                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all flex-shrink-0 ${done ? `${currentTheme.fill} text-white shadow-lg` : 'bg-slate-50 text-slate-300 border border-slate-100'}`}>
+                                                <div key={taskName} className={`p-5 rounded-3xl flex items-center gap-4 transition-all border-2 ${done ? `${currentTheme.bg} ${currentTheme.border}` : 'bg-white border-white shadow-sm hover:border-slate-100'}`}>
+                                                    <div 
+                                                        onClick={() => toggleTask(taskName)}
+                                                        className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all flex-shrink-0 cursor-pointer active-scale ${done ? `${currentTheme.fill} text-white shadow-lg` : 'bg-slate-50 text-slate-300 border border-slate-100'}`}
+                                                    >
                                                         <Icon name={done ? "check" : theme.icon} size={24} />
                                                     </div>
-                                                    <span className={`text-lg font-bold flex-1 leading-snug ${done ? `${currentTheme.text}/40 line-through` : 'text-slate-700'}`}>{taskName}</span>
-                                                    {!done && <Icon name="chevron-right" size={16} className="text-slate-300" />}
+                                                    <div className="flex-1 cursor-pointer" onClick={() => toggleTask(taskName)}>
+                                                        <span className={`text-lg font-bold block leading-tight ${done ? `${currentTheme.text}/40 line-through` : 'text-slate-700'}`}>{taskName}</span>
+                                                        {alarmTime && !done && (
+                                                            <span className="text-[10px] font-black text-indigo-400 flex items-center gap-1 mt-1">
+                                                                <Icon name="bell" size={10} /> {alarmTime} 提醒
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    {!done && (
+                                                        <button 
+                                                            onClick={() => setAlarmSettingTask(taskName)}
+                                                            className={`p-2 rounded-xl transition-all active-scale ${alarmTime ? 'bg-indigo-50 text-indigo-500' : 'text-slate-200 hover:text-slate-400'}`}
+                                                        >
+                                                            <Icon name="clock" size={20} />
+                                                        </button>
+                                                    )}
                                                 </div>
                                             );
                                         })}
