@@ -2,7 +2,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>重整睡眠之旅 v2</title>
+    <title>重整睡眠之旅 v2 主題色適配版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -69,7 +69,6 @@
 
         .progress-bar {
             transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-            background: linear-gradient(90deg, #6366f1, #a855f7, #ec4899);
         }
 
         @keyframes float {
@@ -101,6 +100,15 @@
             return <i data-lucide={name} className={className} style={{ width: size, height: size }}></i>;
         };
 
+        const TASK_THEMES = {
+            '固定時間起床': { color: 'amber', icon: 'alarm-clock', bg: 'bg-amber-50', text: 'text-amber-600', ring: 'ring-amber-100' },
+            '曬日光 (出外曬太陽30-60 分鐘)': { color: 'orange', icon: 'sun', bg: 'bg-orange-50', text: 'text-orange-600', ring: 'ring-orange-100' },
+            '出外做運動 (45-60 分鐘，如：慢跑、快走)': { color: 'emerald', icon: 'bike', bg: 'bg-emerald-50', text: 'text-emerald-600', ring: 'ring-emerald-100' },
+            '聽放鬆音樂 (30-45分鐘)': { color: 'indigo', icon: 'music', bg: 'bg-indigo-50', text: 'text-indigo-600', ring: 'ring-indigo-100' },
+            '呼吸練習 (10-15分鐘)': { color: 'sky', icon: 'wind', bg: 'bg-sky-50', text: 'text-sky-600', ring: 'ring-sky-100' },
+            '熱敷 (眼/肩/頸/背)': { color: 'rose', icon: 'thermometer-sun', bg: 'bg-rose-50', text: 'text-rose-600', ring: 'ring-rose-100' }
+        };
+
         const CATEGORIES = [
             {
                 id: 'daytime',
@@ -130,6 +138,34 @@
             }
         ];
 
+        // 挑戰日數的主題顏色映射
+        const DURATION_THEMES = {
+            7: { 
+                name: 'emerald', 
+                bg: 'bg-emerald-50/50', 
+                border: 'border-emerald-100', 
+                fill: 'bg-emerald-500', 
+                text: 'text-emerald-900',
+                gradient: 'linear-gradient(90deg, #10b981, #34d399, #6ee7b7)'
+            },
+            14: { 
+                name: 'amber', 
+                bg: 'bg-amber-50/50', 
+                border: 'border-amber-100', 
+                fill: 'bg-amber-500', 
+                text: 'text-amber-900',
+                gradient: 'linear-gradient(90deg, #f59e0b, #fbbf24, #fcd34d)'
+            },
+            21: { 
+                name: 'rose', 
+                bg: 'bg-rose-50/50', 
+                border: 'border-rose-100', 
+                fill: 'bg-rose-500', 
+                text: 'text-rose-900',
+                gradient: 'linear-gradient(90deg, #e11d48, #fb7185, #fda4af)'
+            }
+        };
+
         function App() {
             const [appMode, setAppMode] = useState('setup');
             const [setupStep, setSetupStep] = useState(1); 
@@ -150,14 +186,11 @@
                         if (data.startDate) setStartDate(data.startDate);
                         if (data.selectedTasks) setSelectedTasks(new Set(data.selectedTasks));
                         if (data.dailyLogs) setDailyLogs(data.dailyLogs);
-                        
                         if (data.selectedTasks && data.selectedTasks.length > 0 && data.appMode === 'setup') {
                             setSetupStep(2);
                         }
                     }
-                } catch (e) { 
-                    console.warn("無法讀取 localStorage。"); 
-                }
+                } catch (e) { console.warn("無法讀取 localStorage。"); }
             }, []);
 
             useEffect(() => {
@@ -168,7 +201,7 @@
                     }));
                 } catch (e) {}
                 if (window.lucide) window.lucide.createIcons();
-            }, [appMode, planDuration, startDate, selectedTasks, dailyLogs]);
+            }, [appMode, planDuration, startDate, selectedTasks, dailyLogs, activeRitual]);
 
             const todayStr = new Date().toISOString().split('T')[0];
             const getDayDiff = (start, current) => {
@@ -180,16 +213,15 @@
             const currentDayNum = getDayDiff(startDate, todayStr);
             const progressPercent = Math.min(100, Math.max(0, ((currentDayNum - 1) / planDuration) * 100));
 
+            const currentTheme = DURATION_THEMES[planDuration] || DURATION_THEMES[7];
+
             const toggleTask = (taskName) => {
                 const dayLog = dailyLogs[todayStr] || [];
                 const isCompleting = !dayLog.includes(taskName);
-                
-                // 如果是正在完成任務，開啟引導提示彈窗
                 if (isCompleting) {
                     const foundTask = [...CATEGORIES[0].items, ...CATEGORIES[1].items].find(i => i.name === taskName);
                     setActiveRitual(foundTask);
                 } else {
-                    // 如果是取消打勾，直接取消
                     let newLog = dayLog.filter(t => t !== taskName);
                     setDailyLogs({ ...dailyLogs, [todayStr]: newLog });
                 }
@@ -200,12 +232,10 @@
                 const taskName = activeRitual.name;
                 const dayLog = dailyLogs[todayStr] || [];
                 let newLog = [...dayLog, taskName];
-                
                 if (newLog.length === selectedTasks.size) {
                     setShowSuccessToast(true);
                     setTimeout(() => setShowSuccessToast(false), 3000);
                 }
-                
                 setDailyLogs({ ...dailyLogs, [todayStr]: newLog });
                 setActiveRitual(null);
             };
@@ -223,12 +253,8 @@
             const SetupView = () => (
                 <div className="animate-page flex flex-col min-h-screen p-6">
                     <header className="mt-12 mb-8 text-center">
-                        <h1 className="text-4xl font-black tracking-tight soft-title-shadow">
-                            重整睡眠之旅
-                        </h1>
-                        <p className="font-bold mt-3 text-xl soft-subtitle-shadow">
-                            睡眠管理行動計劃
-                        </p>
+                        <h1 className="text-4xl font-black tracking-tight soft-title-shadow">重整睡眠之旅</h1>
+                        <p className="font-bold mt-3 text-xl soft-subtitle-shadow">睡眠管理行動計劃</p>
                     </header>
 
                     {setupStep === 1 ? (
@@ -254,7 +280,6 @@
                                                 ? 'border-amber-500 bg-white shadow-md shadow-amber-100' 
                                                 : 'border-indigo-500 bg-white shadow-md shadow-indigo-100';
                                             const checkColors = cat.id === 'daytime' ? 'bg-amber-500 border-amber-500' : 'bg-indigo-600 border-indigo-600';
-
                                             return (
                                                 <div 
                                                     key={item.name}
@@ -264,9 +289,7 @@
                                                         setSelectedTasks(next);
                                                     }}
                                                     className={`p-4 rounded-2xl border-2 transition-all active-scale cursor-pointer flex items-center justify-between ${
-                                                        isSelected 
-                                                        ? activeColors 
-                                                        : 'border-white/60 bg-white/40 shadow-sm hover:border-slate-200'
+                                                        isSelected ? activeColors : 'border-white/60 bg-white/40 shadow-sm hover:border-slate-200'
                                                     }`}
                                                 >
                                                     <span className={`font-bold text-md leading-snug pr-2 ${isSelected ? 'text-slate-900' : 'text-slate-500'}`}>{item.name}</span>
@@ -283,10 +306,7 @@
                             ))}
 
                             {selectedTasks.size > 0 && (
-                                <button 
-                                    onClick={() => setSetupStep(2)}
-                                    className="w-full mt-4 bg-slate-900 text-white font-black py-5 rounded-3xl shadow-xl active-scale flex items-center justify-center gap-3 text-lg"
-                                >
+                                <button onClick={() => setSetupStep(2)} className="w-full mt-4 bg-slate-900 text-white font-black py-5 rounded-3xl shadow-xl active-scale flex items-center justify-center gap-3 text-lg">
                                     選好了，下一步 <Icon name="chevron-right" size={24} />
                                 </button>
                             )}
@@ -303,10 +323,7 @@
                                 <div className="space-y-4">
                                     <div className="flex justify-between items-center px-1">
                                         <h3 className="text-lg font-bold text-slate-800">已選習慣</h3>
-                                        <button 
-                                            onClick={() => setSetupStep(1)}
-                                            className="text-sm font-bold text-indigo-600 bg-indigo-100/50 px-3 py-1.5 rounded-full flex items-center gap-1 active-scale"
-                                        >
+                                        <button onClick={() => setSetupStep(1)} className="text-sm font-bold text-indigo-600 bg-indigo-100/50 px-3 py-1.5 rounded-full flex items-center gap-1 active-scale">
                                             <Icon name="edit-3" size={14} /> 更改習慣選擇
                                         </button>
                                     </div>
@@ -322,18 +339,14 @@
                                 <div className="space-y-4">
                                     <h3 className="text-lg font-bold text-slate-800 px-1">選擇挑戰天數</h3>
                                     <div className="flex gap-3">
-                                        {[ 
+                                        {[
                                             {v: 7, i: 'zap', label: '初階體會', colorName: 'emerald', activeClass: 'bg-emerald-600 border-emerald-600 text-white shadow-lg shadow-emerald-200', inactiveClass: 'bg-white border-emerald-100 text-emerald-600 hover:border-emerald-300'}, 
                                             {v: 14, i: 'flame', label: '建立規律', colorName: 'amber', activeClass: 'bg-amber-500 border-amber-500 text-white shadow-lg shadow-amber-200', inactiveClass: 'bg-white border-amber-100 text-amber-600 hover:border-amber-300'}, 
                                             {v: 21, i: 'crown', label: '內化習慣', colorName: 'rose', activeClass: 'bg-rose-500 border-rose-500 text-white shadow-lg shadow-rose-200', inactiveClass: 'bg-white border-rose-100 text-rose-600 hover:border-rose-300'}
                                         ].map(d => {
                                             const isSelected = planDuration === d.v;
                                             return (
-                                                <button 
-                                                    key={d.v}
-                                                    onClick={() => setPlanDuration(d.v)}
-                                                    className={`flex-1 py-4 px-2 rounded-2xl transition-all active-scale flex flex-col items-center justify-center gap-1 border-2 ${isSelected ? d.activeClass + ' -translate-y-2' : d.inactiveClass} `}
-                                                >
+                                                <button key={d.v} onClick={() => setPlanDuration(d.v)} className={`flex-1 py-4 px-2 rounded-2xl transition-all active-scale flex flex-col items-center justify-center gap-1 border-2 ${isSelected ? d.activeClass + ' -translate-y-2' : d.inactiveClass} `}>
                                                     <Icon name={d.i} size={18} className={isSelected ? 'text-white' : ''} />
                                                     <span className="text-2xl font-black leading-none">{d.v}天</span>
                                                     <span className={`text-[10px] font-bold ${isSelected ? 'opacity-80' : 'opacity-60'}`}>{d.label}</span>
@@ -347,30 +360,19 @@
                                     <h3 className="text-lg font-bold text-slate-800 px-1">開始日期</h3>
                                     <div className="bg-white border border-slate-200 rounded-2xl p-5 flex items-center justify-between shadow-sm focus-within:ring-2 focus-within:ring-indigo-100 transition-all">
                                         <div className="flex items-center gap-3">
-                                            <div className="bg-indigo-100 text-indigo-600 p-2 rounded-xl">
-                                                <Icon name="calendar" size={18} />
-                                            </div>
+                                            <div className="bg-indigo-100 text-indigo-600 p-2 rounded-xl"><Icon name="calendar" size={18} /></div>
                                             <span className="font-bold text-slate-700">選擇日期</span>
                                         </div>
-                                        <input 
-                                            type="date" 
-                                            value={startDate}
-                                            onChange={(e) => setStartDate(e.target.value)}
-                                            className="bg-transparent font-bold text-indigo-600 focus:outline-none text-right cursor-pointer"
-                                        />
+                                        <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="bg-transparent font-bold text-indigo-600 focus:outline-none text-right cursor-pointer" />
                                     </div>
                                 </div>
                             </div>
 
-                            <button 
-                                onClick={() => setAppMode('tracking')}
-                                className="btn-shine w-full mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-black py-5 rounded-3xl shadow-2xl shadow-indigo-200 active-scale transition-all flex items-center justify-center gap-3 text-lg"
-                            >
+                            <button onClick={() => setAppMode('tracking')} className="btn-shine w-full mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-black py-5 rounded-3xl shadow-2xl shadow-indigo-200 active-scale transition-all flex items-center justify-center gap-3 text-lg">
                                 開啟我的重整之旅 <Icon name="arrow-right" size={24} />
                             </button>
                         </div>
                     )}
-                    <div className="h-8"></div>
                 </div>
             );
 
@@ -380,23 +382,17 @@
                 const endDay = new Date(startDate);
                 endDay.setDate(endDay.getDate() + planDuration - 1);
                 const endDateStr = endDay.toISOString().split('T')[0];
-
                 const doneCount = todayDone.length;
                 const totalCount = selectedTasks.size;
-                
-                const getStatusHint = () => {
-                    if (doneCount === 0) return "今天的挑戰開始了嗎？";
-                    if (doneCount < totalCount) return `已完成 ${doneCount}/${totalCount}，加油！`;
-                    return "今日目標全數達成！";
-                };
+
+                const activeTheme = activeRitual ? (TASK_THEMES[activeRitual.name] || { color: 'slate', icon: 'sparkles', bg: 'bg-slate-50', text: 'text-slate-600', ring: 'ring-slate-100' }) : null;
 
                 return (
                     <div className="animate-page flex flex-col min-h-screen bg-[#f8fafc]">
-                        {/* 成功慶祝彈窗 */}
                         {showSuccessToast && (
                             <div className="fixed inset-0 z-[60] flex items-center justify-center p-8 bg-slate-900/40 backdrop-blur-sm">
-                                <div className="bg-white rounded-[3rem] p-8 text-center shadow-2xl animate-pop border-4 border-emerald-100">
-                                    <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <div className={`bg-white rounded-[3rem] p-8 text-center shadow-2xl animate-pop border-4 ${currentTheme.border}`}>
+                                    <div className={`w-20 h-20 ${currentTheme.bg} ${currentTheme.fill.replace('bg-', 'text-')} rounded-full flex items-center justify-center mx-auto mb-4`}>
                                         <Icon name="sparkles" size={40} />
                                     </div>
                                     <h3 className="text-2xl font-black text-slate-900 mb-2">全數達成！</h3>
@@ -405,34 +401,33 @@
                             </div>
                         )}
 
-                        {/* 儀式引導彈窗 */}
-                        {activeRitual && (
+                        {activeRitual && activeTheme && (
                             <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/60 backdrop-blur-md p-4">
-                                <div className="bg-white w-full max-w-sm rounded-[2.5rem] p-8 animate-pop shadow-2xl relative overflow-hidden">
-                                    <div className="absolute top-0 right-0 p-6 opacity-10">
-                                        <Icon name="moon-star" size={100} />
-                                    </div>
-                                    <div className="flex flex-col items-center text-center space-y-6">
-                                        <div className="w-20 h-20 bg-indigo-100 text-indigo-600 rounded-[2rem] flex items-center justify-center">
-                                            <Icon name="sparkles" size={40} />
+                                <div className="bg-white w-full max-w-sm rounded-[3rem] p-8 animate-pop shadow-2xl relative overflow-hidden">
+                                    
+                                    <div className="flex flex-col items-center text-center space-y-6 relative z-10">
+                                        <div className={`w-28 h-28 ${activeTheme.bg} ${activeTheme.text} rounded-[2.5rem] flex items-center justify-center float-icon shadow-inner ring-8 ${activeTheme.ring} relative overflow-hidden`}>
+                                            <div className="absolute inset-0 flex items-center justify-center opacity-10 rotate-12 scale-150">
+                                                <Icon name={activeTheme.icon} size={80} />
+                                            </div>
+                                            <Icon name={activeTheme.icon} size={52} className="relative z-10" />
                                         </div>
+                                        
                                         <div>
-                                            <h3 className="text-2xl font-black text-slate-900 mb-3">{activeRitual.name}</h3>
+                                            <h3 className="text-2xl font-black text-slate-900 mb-6">{activeRitual.name}</h3>
                                             <p className="text-slate-500 font-bold leading-relaxed px-4">
                                                 {activeRitual.hint}
                                             </p>
                                         </div>
+                                        
                                         <div className="w-full flex flex-col gap-3 pt-4">
                                             <button 
                                                 onClick={confirmRitual}
-                                                className="w-full bg-indigo-600 text-white font-black py-4 rounded-2xl shadow-lg active-scale flex items-center justify-center gap-2"
+                                                className={`w-full text-white font-black py-5 rounded-2xl shadow-xl active-scale flex items-center justify-center gap-2 transition-colors ${currentTheme.fill}`}
                                             >
-                                                完成挑戰 <Icon name="check-circle" size={20} />
+                                                完成挑戰 <Icon name="check-circle" size={22} />
                                             </button>
-                                            <button 
-                                                onClick={() => setActiveRitual(null)}
-                                                className="w-full bg-slate-100 text-slate-400 font-bold py-3 rounded-2xl active-scale"
-                                            >
+                                            <button onClick={() => setActiveRitual(null)} className="w-full bg-slate-50 text-slate-400 font-bold py-3 rounded-2xl active-scale text-sm">
                                                 稍後再說
                                             </button>
                                         </div>
@@ -442,113 +437,58 @@
                         )}
 
                         <div className="bg-white px-6 pt-12 pb-8 rounded-b-[3rem] shadow-sm border-b border-slate-100 relative overflow-hidden">
-                            <div className="absolute top-0 right-0 p-8 opacity-5">
-                                <Icon name="cloud-moon" size={120} />
-                            </div>
-                            
+                            <div className="absolute top-0 right-0 p-8 opacity-5"><Icon name="cloud-moon" size={120} /></div>
                             <div className="flex justify-between items-center mb-6">
-                                <button onClick={() => setAppMode('setup')} className="p-2 hover:bg-slate-50 rounded-full text-slate-400">
-                                    <Icon name="settings" size={20} />
-                                </button>
+                                <button onClick={() => setAppMode('setup')} className="p-2 hover:bg-slate-50 rounded-full text-slate-400"><Icon name="settings" size={20} /></button>
                                 <div className="text-center">
-                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                                        {startDate} 至 {endDateStr}
-                                    </p>
-                                    <h2 className="text-xl font-black text-slate-900">
-                                        {currentDayNum < 1 ? "尚未開始" : (isFinished ? "旅程圓滿達成！" : `第 ${currentDayNum} 天 / 共 ${planDuration} 天`)}
-                                    </h2>
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{startDate} 至 {endDateStr}</p>
+                                    <h2 className="text-xl font-black text-slate-900">{currentDayNum < 1 ? "尚未開始" : (isFinished ? "旅程圓滿達成！" : `第 ${currentDayNum} 天 / 共 ${planDuration} 天`)}</h2>
                                 </div>
-                                <button onClick={resetApp} className="p-2 hover:bg-red-50 rounded-full text-red-300">
-                                    <Icon name="refresh-ccw" size={18} />
-                                </button>
+                                <button onClick={resetApp} className="p-2 hover:bg-red-50 rounded-full text-red-300"><Icon name="refresh-ccw" size={18} /></button>
                             </div>
-
                             <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden mb-2">
-                                <div className="progress-bar h-full rounded-full" style={{ width: `${currentDayNum < 1 ? 0 : progressPercent}%` }}></div>
+                                <div className="progress-bar h-full rounded-full transition-all duration-500" style={{ width: `${currentDayNum < 1 ? 0 : progressPercent}%`, background: currentTheme.gradient }}></div>
                             </div>
-                            <div className="flex justify-between text-[10px] font-bold text-slate-400">
-                                <span>起點</span>
-                                <span>{currentDayNum < 1 ? 0 : Math.round(progressPercent)}%</span>
-                                <span>終點</span>
-                            </div>
-
-                            {!isFinished && currentDayNum >= 1 && (
-                                <div className={`mt-6 p-4 rounded-2xl flex items-center gap-3 border transition-all ${
-                                    doneCount === totalCount ? 'bg-emerald-50 border-emerald-100 text-emerald-700' : 'bg-indigo-50 border-indigo-100 text-indigo-700'
-                                }`}>
-                                    <Icon name={doneCount === totalCount ? "award" : "check-square"} size={18} />
-                                    <p className="text-xs font-bold">{getStatusHint()}</p>
-                                </div>
-                            )}
+                            <div className="flex justify-between text-[10px] font-bold text-slate-400"><span>起點</span><span>{currentDayNum < 1 ? 0 : Math.round(progressPercent)}%</span><span>終點</span></div>
                         </div>
 
                         <div className="flex-1 p-6 overflow-y-auto no-scrollbar pb-24">
                             {currentDayNum < 1 ? (
                                 <div className="text-center py-10 space-y-6">
-                                    <div className="w-24 h-24 bg-indigo-100 rounded-full flex items-center justify-center mx-auto float-icon">
-                                        <Icon name="calendar-clock" className="text-indigo-600" size={48} />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-2xl font-black text-slate-900">期待旅程開始！</h3>
-                                        <p className="text-slate-500 mt-2 px-6">你的挑戰將於 <b>{startDate}</b> 正式開啟。</p>
-                                    </div>
+                                    <div className={`w-24 h-24 ${currentTheme.bg} rounded-full flex items-center justify-center mx-auto float-icon`}><Icon name="calendar-clock" className={currentTheme.fill.replace('bg-', 'text-')} size={48} /></div>
+                                    <div><h3 className="text-2xl font-black text-slate-900">期待旅程開始！</h3><p className="text-slate-500 mt-2 px-6">你的挑戰將於 <b>{startDate}</b> 正式開啟。</p></div>
                                     <button onClick={() => {setAppMode('setup'); setSetupStep(2);}} className="bg-slate-900 text-white px-8 py-4 rounded-2xl font-black shadow-xl active-scale">更改開始日期</button>
                                 </div>
                             ) : isFinished ? (
                                 <div className="text-center py-10 space-y-6">
-                                    <div className="w-24 h-24 bg-yellow-100 rounded-full flex items-center justify-center mx-auto float-icon">
-                                        <Icon name="trophy" className="text-yellow-600" size={48} />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-2xl font-black text-slate-900">太棒了，完成挑戰！</h3>
-                                        <p className="text-slate-500 mt-2 px-6">你已經成功掌握了自己的睡眠節奏。</p>
-                                    </div>
+                                    <div className="w-24 h-24 bg-yellow-100 rounded-full flex items-center justify-center mx-auto float-icon"><Icon name="trophy" className="text-yellow-600" size={48} /></div>
+                                    <div><h3 className="text-2xl font-black text-slate-900">太棒了，完成挑戰！</h3><p className="text-slate-500 mt-2 px-6">你已經成功掌握了自己的睡眠節奏。</p></div>
                                     <button onClick={resetApp} className="bg-slate-900 text-white px-8 py-4 rounded-2xl font-black shadow-xl active-scale">展開新旅程</button>
                                 </div>
                             ) : (
                                 <div className="space-y-6">
                                     <div className="space-y-4">
-                                        <h3 className="text-lg font-black text-slate-800 flex items-center gap-2">
-                                            <Icon name="list-checks" className="text-indigo-500" />
-                                            今日挑戰任務
-                                        </h3>
+                                        <h3 className="text-lg font-black text-slate-800 flex items-center gap-2"><Icon name="list-checks" className={currentTheme.fill.replace('bg-', 'text-')} />今日挑戰任務</h3>
                                         {Array.from(selectedTasks).map(taskName => {
                                             const done = todayDone.includes(taskName);
+                                            const theme = TASK_THEMES[taskName] || { icon: 'circle' };
                                             return (
-                                                <div 
-                                                    key={taskName}
-                                                    onClick={() => toggleTask(taskName)}
-                                                    className={`p-5 rounded-2xl flex items-center gap-4 transition-all active-scale cursor-pointer border-2 ${
-                                                        done ? 'bg-emerald-50/50 border-emerald-100' : 'bg-white border-white shadow-sm hover:border-indigo-50'
-                                                    }`}
-                                                >
-                                                    <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all flex-shrink-0 ${
-                                                        done ? 'bg-emerald-500 text-white shadow-lg' : 'bg-slate-50 text-slate-300 border border-slate-100'
-                                                    }`}>
-                                                        <Icon name={done ? "check" : "square"} size={24} />
+                                                <div key={taskName} onClick={() => toggleTask(taskName)} className={`p-5 rounded-3xl flex items-center gap-4 transition-all active-scale cursor-pointer border-2 ${done ? `${currentTheme.bg} ${currentTheme.border}` : 'bg-white border-white shadow-sm hover:border-slate-100'}`}>
+                                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all flex-shrink-0 ${done ? `${currentTheme.fill} text-white shadow-lg` : 'bg-slate-50 text-slate-300 border border-slate-100'}`}>
+                                                        <Icon name={done ? "check" : theme.icon} size={24} />
                                                     </div>
-                                                    <span className={`text-lg font-bold flex-1 leading-snug ${done ? 'text-emerald-900/50 line-through' : 'text-slate-700'}`}>
-                                                        {taskName}
-                                                    </span>
+                                                    <span className={`text-lg font-bold flex-1 leading-snug ${done ? `${currentTheme.text}/40 line-through` : 'text-slate-700'}`}>{taskName}</span>
+                                                    {!done && <Icon name="chevron-right" size={16} className="text-slate-300" />}
                                                 </div>
                                             );
                                         })}
                                     </div>
-                                    
                                     <div className="grid grid-cols-7 gap-2 pt-4">
                                         {Array.from({length: Math.min(planDuration, 21)}).map((_, i) => {
                                             const dNum = i + 1;
                                             const isPast = dNum < currentDayNum;
                                             const isToday = dNum === currentDayNum;
-                                            return (
-                                                <div key={i} className={`h-8 rounded-lg flex items-center justify-center text-[10px] font-black ${
-                                                    isPast ? 'bg-emerald-100 text-emerald-600' : 
-                                                    isToday ? 'bg-indigo-600 text-white ring-4 ring-indigo-50' : 
-                                                    'bg-slate-200 text-slate-400'
-                                                }`}>
-                                                    {dNum}
-                                                </div>
-                                            );
+                                            return <div key={i} className={`h-8 rounded-lg flex items-center justify-center text-[10px] font-black ${isPast ? `${currentTheme.bg} ${currentTheme.fill.replace('bg-', 'text-')}` : isToday ? `${currentTheme.fill} text-white ring-4 ${currentTheme.bg}` : 'bg-slate-200 text-slate-400'}`}>{dNum}</div>;
                                         })}
                                     </div>
                                 </div>
