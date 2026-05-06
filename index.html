@@ -1,8 +1,8 @@
-<html lang="zh-Hant">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>重整睡眠之旅 v3 活力色彩版</title>
+    <title>重整睡眠之旅 v4.1 完整版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -116,9 +116,11 @@
             '固定時間起床': { color: 'amber', icon: 'alarm-clock', bg: 'bg-amber-50', text: 'text-amber-600', ring: 'ring-amber-100' },
             '曬日光 (出外曬太陽30-60 分鐘)': { color: 'orange', icon: 'sun', bg: 'bg-orange-50', text: 'text-orange-600', ring: 'ring-orange-100' },
             '出外做運動 (45-60 分鐘，如：慢跑、快走)': { color: 'emerald', icon: 'bike', bg: 'bg-emerald-50', text: 'text-emerald-600', ring: 'ring-emerald-100' },
+            '避免日間躺在睡床上': { color: 'amber', icon: 'sofa', bg: 'bg-amber-50', text: 'text-amber-600', ring: 'ring-amber-100' },
             '聽放鬆音樂 (30-45分鐘)': { color: 'indigo', icon: 'music', bg: 'bg-indigo-50', text: 'text-indigo-600', ring: 'ring-indigo-100' },
             '呼吸練習 (10-15分鐘)': { color: 'sky', icon: 'wind', bg: 'bg-sky-50', text: 'text-sky-600', ring: 'ring-sky-100' },
             '熱敷 (眼/肩/頸/背)': { color: 'rose', icon: 'thermometer-sun', bg: 'bg-rose-50', text: 'text-rose-600', ring: 'ring-rose-100' },
+            '拉筋伸展運動 (15-20 分鐘)': { color: 'violet', icon: 'accessibility', bg: 'bg-violet-50', text: 'text-violet-600', ring: 'ring-violet-100' },
             '減少/避免在中午後飲用有咖啡因飲品 (咖啡、奶茶、茶、可樂)': { color: 'cyan', icon: 'coffee', bg: 'bg-cyan-50', text: 'text-cyan-600', ring: 'ring-cyan-100' },
             '睡前至少30分鐘停止使用電子產品，如：手機、電視、平板': { color: 'cyan', icon: 'smartphone', bg: 'bg-cyan-50', text: 'text-cyan-600', ring: 'ring-cyan-100' },
             '避免在床上做和睡眠沒有關係的事，如：看電視/手機、進食': { color: 'cyan', icon: 'bed', bg: 'bg-cyan-50', text: 'text-cyan-600', ring: 'ring-cyan-100' },
@@ -137,7 +139,8 @@
                 items: [
                     { name: '固定時間起床', hint: '即使假日也建議維持相同作息' },
                     { name: '曬日光 (出外曬太陽30-60 分鐘)', hint: '光照有助於調節生理時鐘' },
-                    { name: '出外做運動 (45-60 分鐘，如：慢跑、快走)', hint: '適度運動能幫助晚間深層睡眠' }
+                    { name: '出外做運動 (45-60 分鐘，如：慢跑、快走)', hint: '適度運動能幫助晚間深層睡眠' },
+                    { name: '避免日間躺在睡床上', hint: '床應僅用於睡眠，日間活動應在沙發或桌椅進行' }
                 ]
             },
             {
@@ -165,7 +168,8 @@
                 items: [
                     { name: '聽放鬆音樂 (30-45分鐘)', hint: '讓節奏慢下來，準備睡眠訊號' },
                     { name: '呼吸練習 (10-15分鐘)', hint: '專注於深緩呼吸，放鬆神經系統' },
-                    { name: '熱敷 (眼/肩/頸/背)', hint: '提升局部循環並降低核心溫度感' }
+                    { name: '熱敷 (眼/肩/頸/背)', hint: '提升局部循環並降低核心溫度感' },
+                    { name: '拉筋伸展運動 (15-20 分鐘)', hint: '輕柔舒展身體，緩解肌肉緊繃，幫助入睡' }
                 ]
             }
         ];
@@ -212,7 +216,7 @@
 
             useEffect(() => {
                 try {
-                    const saved = localStorage.getItem('SleepApp_V4_ColorUpdate');
+                    const saved = localStorage.getItem('SleepApp_V4_FinalUpdate');
                     if (saved) {
                         const data = JSON.parse(saved);
                         if (data.appMode) setAppMode(data.appMode);
@@ -230,7 +234,7 @@
 
             useEffect(() => {
                 try {
-                    localStorage.setItem('SleepApp_V4_ColorUpdate', JSON.stringify({
+                    localStorage.setItem('SleepApp_V4_FinalUpdate', JSON.stringify({
                         appMode, planDuration, startDate, dailyLogs, taskAlarms,
                         selectedTasks: Array.from(selectedTasks)
                     }));
@@ -270,7 +274,7 @@
                 const dayLog = dailyLogs[todayStr] || [];
                 const isCompleting = !dayLog.includes(taskName);
                 if (isCompleting) {
-                    const foundTask = [...CATEGORIES[0].items, ...CATEGORIES[1].items, ...CATEGORIES[2].items].find(i => i.name === taskName);
+                    const foundTask = CATEGORIES.flatMap(c => c.items).find(i => i.name === taskName);
                     setActiveRitual(foundTask);
                 } else {
                     let newLog = dayLog.filter(t => t !== taskName);
@@ -456,7 +460,7 @@
                                     <h3 className="text-xl font-black text-slate-800 mb-8">{triggeredAlarm}</h3>
                                     <button 
                                         onClick={() => {
-                                            const taskInfo = [...CATEGORIES[0].items, ...CATEGORIES[1].items, ...CATEGORIES[2].items].find(i => i.name === triggeredAlarm);
+                                            const taskInfo = CATEGORIES.flatMap(c => c.items).find(i => i.name === triggeredAlarm);
                                             setActiveRitual(taskInfo);
                                         }}
                                         className={`w-full py-4 rounded-2xl text-white font-black shadow-lg mb-3 active-scale ${currentTheme.fill}`}
