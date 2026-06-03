@@ -1,8 +1,8 @@
-
+<html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>重整睡眠之旅 v4.1 完整版</title>
+    <title>重整睡眠之旅 - 系統通知版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -120,7 +120,7 @@
             '聽放鬆音樂 (30-45分鐘)': { color: 'indigo', icon: 'music', bg: 'bg-indigo-50', text: 'text-indigo-600', ring: 'ring-indigo-100' },
             '呼吸練習 (10-15分鐘)': { color: 'sky', icon: 'wind', bg: 'bg-sky-50', text: 'text-sky-600', ring: 'ring-sky-100' },
             '熱敷 (眼/肩/頸/背)': { color: 'rose', icon: 'thermometer-sun', bg: 'bg-rose-50', text: 'text-rose-600', ring: 'ring-rose-100' },
-            '拉筋伸展運動 (15-20 分鐘)': { color: 'violet', icon: 'accessibility', bg: 'bg-violet-50', text: 'text-violet-600', ring: 'ring-violet-100' },
+            '拉筋伸展運動 (15-20 分鐘)': { color: 'violet', icon: 'flower', bg: 'bg-violet-50', text: 'text-violet-600', ring: 'ring-violet-100' },
             '減少/避免在中午後飲用有咖啡因飲品 (咖啡、奶茶、茶、可樂)': { color: 'cyan', icon: 'coffee', bg: 'bg-cyan-50', text: 'text-cyan-600', ring: 'ring-cyan-100' },
             '睡前至少30分鐘停止使用電子產品，如：手機、電視、平板': { color: 'cyan', icon: 'smartphone', bg: 'bg-cyan-50', text: 'text-cyan-600', ring: 'ring-cyan-100' },
             '避免在床上做和睡眠沒有關係的事，如：看電視/手機、進食': { color: 'cyan', icon: 'bed', bg: 'bg-cyan-50', text: 'text-cyan-600', ring: 'ring-cyan-100' },
@@ -140,7 +140,7 @@
                     { name: '固定時間起床', hint: '即使假日也建議維持相同作息' },
                     { name: '曬日光 (出外曬太陽30-60 分鐘)', hint: '光照有助於調節生理時鐘' },
                     { name: '出外做運動 (45-60 分鐘，如：慢跑、快走)', hint: '適度運動能幫助晚間深層睡眠' },
-                    { name: '避免日間躺在睡床上', hint: '床應僅用於睡眠，日間活動應在沙發或桌椅進行' }
+                    { name: '避免日間躺在睡床上', hint: '床應僅用於睡眠，日間活動應在沙發 or 桌椅進行' }
                 ]
             },
             {
@@ -169,7 +169,7 @@
                     { name: '聽放鬆音樂 (30-45分鐘)', hint: '讓節奏慢下來，準備睡眠訊號' },
                     { name: '呼吸練習 (10-15分鐘)', hint: '專注於深緩呼吸，放鬆神經系統' },
                     { name: '熱敷 (眼/肩/頸/背)', hint: '提升局部循環並降低核心溫度感' },
-                    { name: '拉筋伸展運動 (15-20 分鐘)', hint: '輕柔舒展身體，緩解肌肉緊繃，幫助入睡' }
+                    { name: '拉筋伸展運動 (15-20 分鐘)', hint: '輕柔舒展身體，緩解肌肉緊繃，放鬆並幫助入睡' }
                 ]
             }
         ];
@@ -213,6 +213,8 @@
             const [activeRitual, setActiveRitual] = useState(null);
             const [alarmSettingTask, setAlarmSettingTask] = useState(null);
             const [triggeredAlarm, setTriggeredAlarm] = useState(null);
+            const [showResetConfirm, setShowResetConfirm] = useState(false);
+            const [notificationPermission, setNotificationPermission] = useState('default');
 
             useEffect(() => {
                 try {
@@ -230,6 +232,11 @@
                         }
                     }
                 } catch (e) { console.warn("無法讀取 localStorage。"); }
+
+                // 檢查並更新通知權限
+                if ('Notification' in window) {
+                    setNotificationPermission(Notification.permission);
+                }
             }, []);
 
             useEffect(() => {
@@ -242,6 +249,24 @@
                 if (window.lucide) window.lucide.createIcons();
             }, [appMode, planDuration, startDate, selectedTasks, dailyLogs, activeRitual, taskAlarms, alarmSettingTask, triggeredAlarm]);
 
+            // 當有鬧鐘響起時，讓網頁 Tab 標題動態閃爍，確保即使不看網頁也會被吸引注意
+            useEffect(() => {
+                let interval;
+                if (triggeredAlarm) {
+                    let flag = true;
+                    interval = setInterval(() => {
+                        document.title = flag ? "⏰【任務提醒】" : "重整睡眠之旅";
+                        flag = !flag;
+                    }, 1000);
+                } else {
+                    document.title = "重整睡眠之旅";
+                }
+                return () => {
+                    clearInterval(interval);
+                    document.title = "重整睡眠之旅";
+                };
+            }, [triggeredAlarm]);
+
             useEffect(() => {
                 const timer = setInterval(() => {
                     if (appMode !== 'tracking') return;
@@ -253,11 +278,42 @@
                     Object.entries(taskAlarms).forEach(([task, time]) => {
                         if (time === currentTime && !todayDone.includes(task) && triggeredAlarm !== task) {
                             setTriggeredAlarm(task);
+                            
+                            // 觸發原生系統通知 (即使使用者將瀏覽器縮小或切換至別的分頁也能在桌面上看見)
+                            if ('Notification' in window && Notification.permission === 'granted') {
+                                try {
+                                    const notify = new Notification("重整睡眠之旅 ⏰ 任務提醒", {
+                                        body: `現在時間是 ${currentTime}，該執行「${task}」囉！`,
+                                        icon: "https://placehold.co/128x128/6366f1/ffffff?text=Sleep",
+                                        requireInteraction: true // 通知會一直停留在桌面上直到使用者關閉或點擊
+                                    });
+
+                                    // 點擊通知返回網頁並直接開啟任務引導
+                                    notify.onclick = () => {
+                                        window.focus();
+                                        const foundTask = CATEGORIES.flatMap(c => c.items).find(i => i.name === task);
+                                        if (foundTask) {
+                                            setActiveRitual(foundTask);
+                                        }
+                                        notify.close();
+                                    };
+                                } catch (err) {
+                                    console.warn("系統通知發送失敗:", err);
+                                }
+                            }
                         }
                     });
                 }, 10000);
                 return () => clearInterval(timer);
             }, [taskAlarms, dailyLogs, appMode, triggeredAlarm]);
+
+            // 向瀏覽器要求發送通知權限
+            const requestPermission = async () => {
+                if ('Notification' in window) {
+                    const result = await Notification.requestPermission();
+                    setNotificationPermission(result);
+                }
+            };
 
             const todayStr = new Date().toISOString().split('T')[0];
             const getDayDiff = (start, current) => {
@@ -296,15 +352,20 @@
                 setTriggeredAlarm(null);
             };
 
-            const resetApp = () => {
-                if(confirm("確定要清除所有記錄並重新開始嗎？")) {
-                    setAppMode('setup');
-                    setSetupStep(1);
-                    setDailyLogs({});
-                    setSelectedTasks(new Set());
-                    setTaskAlarms({});
-                    setStartDate(new Date().toISOString().split('T')[0]);
-                }
+            const handleOneClickCancelAlarm = (taskName) => {
+                const nextAlarms = { ...taskAlarms };
+                delete nextAlarms[taskName];
+                setTaskAlarms(nextAlarms);
+            };
+
+            const executeReset = () => {
+                setAppMode('setup');
+                setSetupStep(1);
+                setDailyLogs({});
+                setSelectedTasks(new Set());
+                setTaskAlarms({});
+                setStartDate(new Date().toISOString().split('T')[0]);
+                setShowResetConfirm(false);
             };
 
             const SetupView = () => (
@@ -449,10 +510,26 @@
 
                 return (
                     <div className="animate-page flex flex-col min-h-screen bg-[#f8fafc]">
-                        {/* 鬧鐘提醒彈窗 */}
+                        {/* 系統通知權限柔性導引欄 */}
+                        {notificationPermission === 'default' && (
+                            <div className="bg-indigo-50 border-b border-indigo-100 px-6 py-3 flex items-center justify-between text-xs font-bold text-indigo-900 gap-3">
+                                <div className="flex items-center gap-2">
+                                    <Icon name="bell-ring" size={16} className="text-indigo-600 animate-shake" />
+                                    <span>開啟桌面級通知，即使沒開網頁也不漏接任務！</span>
+                                </div>
+                                <button 
+                                    onClick={requestPermission} 
+                                    className="bg-indigo-600 text-white px-3 py-1.5 rounded-full active-scale flex-shrink-0"
+                                >
+                                    立即開啟
+                                </button>
+                            </div>
+                        )}
+
+                        {/* 鬧鐘提醒內部彈窗 (雙重提示：保證網頁打開時有明顯阻斷感) */}
                         {triggeredAlarm && (
                             <div className="fixed inset-0 z-[100] overlay-blur flex items-center justify-center p-6">
-                                <div className="bg-white w-full max-w-xs rounded-[2.5rem] p-8 text-center animate-pop shadow-2xl">
+                                <div className="bg-white w-full max-w-xs rounded-[2.5rem] p-8 text-center animate-pop shadow-2xl border-2 border-slate-100">
                                     <div className={`w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center animate-shake ${currentTheme.bg} ${currentTheme.fill.replace('bg-', 'text-')}`}>
                                         <Icon name="bell" size={40} />
                                     </div>
@@ -478,6 +555,15 @@
                                 <div className="bg-white w-full max-w-xs rounded-[2.5rem] p-8 animate-pop shadow-2xl">
                                     <h3 className="text-xl font-black text-slate-800 mb-1 text-center">設定提醒時間</h3>
                                     <p className="text-slate-400 text-[10px] font-bold text-center mb-6 leading-relaxed">{alarmSettingTask}</p>
+                                    
+                                    {/* 提醒用戶授權通知權限 */}
+                                    {notificationPermission !== 'granted' && (
+                                        <div onClick={requestPermission} className="mb-4 p-2 bg-amber-50 rounded-xl border border-amber-100 text-[10px] text-amber-700 font-bold flex items-center gap-1.5 cursor-pointer hover:bg-amber-100">
+                                            <Icon name="alert-triangle" size={12} />
+                                            <span>系統通知權限未開啟。點擊此處允許權限。</span>
+                                        </div>
+                                    )}
+
                                     <input 
                                         type="time" 
                                         defaultValue={taskAlarms[alarmSettingTask] || "08:00"}
@@ -490,6 +576,8 @@
                                                 const timeVal = document.getElementById('timePicker').value;
                                                 setTaskAlarms({...taskAlarms, [alarmSettingTask]: timeVal});
                                                 setAlarmSettingTask(null);
+                                                // 儲存時確認授權
+                                                requestPermission();
                                             }}
                                             className={`w-full py-4 rounded-xl text-white font-black active-scale ${currentTheme.fill}`}
                                         >
@@ -501,6 +589,7 @@
                             </div>
                         )}
 
+                        {/* 達成所有目標的慶祝畫面 */}
                         {showSuccessToast && (
                             <div className="fixed inset-0 z-[60] flex items-center justify-center p-8 bg-slate-900/40 backdrop-blur-sm">
                                 <div className={`bg-white rounded-[3rem] p-8 text-center shadow-2xl animate-pop border-4 ${currentTheme.border}`}>
@@ -513,6 +602,7 @@
                             </div>
                         )}
 
+                        {/* 引導儀式與放鬆說明視窗 */}
                         {activeRitual && activeTheme && (
                             <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/60 backdrop-blur-md p-4">
                                 <div className="bg-white w-full max-w-sm rounded-[3rem] p-8 animate-pop shadow-2xl relative overflow-hidden">
@@ -545,6 +635,34 @@
                             </div>
                         )}
 
+                        {/* 客製化精緻重置確認彈窗 */}
+                        {showResetConfirm && (
+                            <div className="fixed inset-0 z-[110] overlay-blur flex items-center justify-center p-6">
+                                <div className="bg-white w-full max-w-xs rounded-[2.5rem] p-8 text-center animate-pop shadow-2xl border border-red-100">
+                                    <div className="w-16 h-16 mx-auto mb-4 bg-red-50 text-red-500 rounded-full flex items-center justify-center">
+                                        <Icon name="alert-triangle" size={32} />
+                                    </div>
+                                    <h3 className="text-xl font-black text-slate-800 mb-2">確定要重新開始？</h3>
+                                    <p className="text-slate-400 text-xs font-bold mb-6">這將會清除您目前記錄的所有天數、已選習慣與定時提醒。</p>
+                                    <div className="flex flex-col gap-2">
+                                        <button 
+                                            onClick={executeReset} 
+                                            className="w-full py-4 rounded-xl bg-red-500 hover:bg-red-600 text-white font-black active-scale shadow-lg shadow-red-100"
+                                        >
+                                            清除並重置
+                                        </button>
+                                        <button 
+                                            onClick={() => setShowResetConfirm(false)} 
+                                            className="py-2 text-slate-400 font-bold"
+                                        >
+                                            返回
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* 頂部里程碑與進度展示 */}
                         <div className="bg-white px-6 pt-12 pb-8 rounded-b-[3rem] shadow-sm border-b border-slate-100 relative overflow-hidden">
                             <div className="absolute top-0 right-0 p-8 opacity-5"><Icon name="cloud-moon" size={120} /></div>
                             <div className="flex justify-between items-center mb-6">
@@ -553,7 +671,7 @@
                                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{startDate} 至 {endDateStr}</p>
                                     <h2 className="text-xl font-black text-slate-900">{currentDayNum < 1 ? "尚未開始" : (isFinished ? "旅程圓滿達成！" : `第 ${currentDayNum} 天 / 共 ${planDuration} 天`)}</h2>
                                 </div>
-                                <button onClick={resetApp} className="p-2 hover:bg-red-50 rounded-full text-red-300"><Icon name="refresh-ccw" size={18} /></button>
+                                <button onClick={() => setShowResetConfirm(true)} className="p-2 hover:bg-red-50 rounded-full text-red-300"><Icon name="refresh-ccw" size={18} /></button>
                             </div>
                             <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden mb-2">
                                 <div className="progress-bar h-full rounded-full transition-all duration-500" style={{ width: `${currentDayNum < 1 ? 0 : progressPercent}%`, background: currentTheme.gradient }}></div>
@@ -561,6 +679,7 @@
                             <div className="flex justify-between text-[10px] font-bold text-slate-400"><span>起點</span><span>{currentDayNum < 1 ? 0 : Math.round(progressPercent)}%</span><span>終點</span></div>
                         </div>
 
+                        {/* 今日核心挑戰清單 */}
                         <div className="flex-1 p-6 overflow-y-auto no-scrollbar pb-24">
                             {currentDayNum < 1 ? (
                                 <div className="text-center py-10 space-y-6">
@@ -572,7 +691,7 @@
                                 <div className="text-center py-10 space-y-6">
                                     <div className="w-24 h-24 bg-yellow-100 rounded-full flex items-center justify-center mx-auto float-icon"><Icon name="trophy" className="text-yellow-600" size={48} /></div>
                                     <div><h3 className="text-2xl font-black text-slate-900">太棒了，完成挑戰！</h3><p className="text-slate-500 mt-2 px-6">你已經成功掌握了自己的睡眠節奏。</p></div>
-                                    <button onClick={resetApp} className="bg-slate-900 text-white px-8 py-4 rounded-2xl font-black shadow-xl active-scale">展開新旅程</button>
+                                    <button onClick={() => setShowResetConfirm(true)} className="bg-slate-900 text-white px-8 py-4 rounded-2xl font-black shadow-xl active-scale">展開新旅程</button>
                                 </div>
                             ) : (
                                 <div className="space-y-6">
@@ -599,12 +718,31 @@
                                                         )}
                                                     </div>
                                                     {!done && (
-                                                        <button 
-                                                            onClick={() => setAlarmSettingTask(taskName)}
-                                                            className={`p-2 rounded-xl transition-all active-scale ${alarmTime ? 'bg-indigo-50 text-indigo-500' : 'text-slate-200 hover:text-slate-400'}`}
-                                                        >
-                                                            <Icon name="clock" size={20} />
-                                                        </button>
+                                                        <div className="flex items-center">
+                                                            {alarmTime ? (
+                                                                <button 
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handleOneClickCancelAlarm(taskName);
+                                                                    }}
+                                                                    className="p-2 rounded-xl bg-red-50 text-red-500 hover:bg-red-100 transition-all active-scale"
+                                                                    title="一鍵取消鬧鐘提醒"
+                                                                >
+                                                                    <Icon name="bell-off" size={20} />
+                                                                </button>
+                                                            ) : (
+                                                                <button 
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        setAlarmSettingTask(taskName);
+                                                                    }}
+                                                                    className="p-2 rounded-xl text-slate-200 hover:text-slate-400 transition-all active-scale"
+                                                                    title="設定鬧鐘"
+                                                                >
+                                                                    <Icon name="clock" size={20} />
+                                                                </button>
+                                                            )}
+                                                        </div>
                                                     )}
                                                 </div>
                                             );
