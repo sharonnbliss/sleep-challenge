@@ -201,6 +201,13 @@
             }
         };
 
+        const Footer = () => (
+            <div className="w-full flex items-center justify-center gap-1.5 py-6 mt-2 text-slate-300 text-[11px] font-bold tracking-widest">
+                <Icon name="heart" size={12} className="text-red-300/60 fill-red-300/20" />
+                <span>QEH OT</span>
+            </div>
+        );
+
         function App() {
             const [appMode, setAppMode] = useState('setup');
             const [setupStep, setSetupStep] = useState(1); 
@@ -216,7 +223,6 @@
             const [showResetConfirm, setShowResetConfirm] = useState(false);
             const [notificationPermission, setNotificationPermission] = useState('default');
 
-            // 讀取本地快取
             useEffect(() => {
                 try {
                     const saved = localStorage.getItem('SleepApp_V4_FinalUpdate');
@@ -239,7 +245,6 @@
                 }
             }, []);
 
-            // 儲存本地快取
             useEffect(() => {
                 try {
                     localStorage.setItem('SleepApp_V4_FinalUpdate', JSON.stringify({
@@ -250,7 +255,6 @@
                 if (window.lucide) window.lucide.createIcons();
             }, [appMode, planDuration, startDate, selectedTasks, dailyLogs, activeRitual, taskAlarms, alarmSettingTask, triggeredAlarm]);
 
-            // 當有鬧鐘響起時，動態閃爍瀏覽器分頁標題
             useEffect(() => {
                 let interval;
                 if (triggeredAlarm) {
@@ -280,7 +284,6 @@
                         if (time === currentTime && !todayDone.includes(task) && triggeredAlarm !== task) {
                             setTriggeredAlarm(task);
                             
-                            // 觸發原生系統通知
                             if ('Notification' in window && Notification.permission === 'granted') {
                                 try {
                                     const notify = new Notification("重整睡眠之旅 ⏰ 任務提醒", {
@@ -289,7 +292,6 @@
                                         requireInteraction: true
                                     });
 
-                                    // 點擊通知時切換至 Tracking 版面並開啟任務詳細引導，同時清空多餘的提醒彈窗
                                     notify.onclick = () => {
                                         window.focus();
                                         setAppMode('tracking');
@@ -310,7 +312,6 @@
                 return () => clearInterval(timer);
             }, [taskAlarms, dailyLogs, appMode, triggeredAlarm]);
 
-            // 要求系統通知授權
             const requestPermission = async () => {
                 if ('Notification' in window) {
                     const result = await Notification.requestPermission();
@@ -437,6 +438,7 @@
                                     選好了，下一步 <Icon name="chevron-right" size={24} />
                                 </button>
                             )}
+                            <Footer />
                         </div>
                     ) : (
                         <div className="animate-page space-y-6 flex-1 overflow-y-auto no-scrollbar pb-8 px-1">
@@ -498,6 +500,7 @@
                             <button onClick={() => setAppMode('tracking')} className="btn-shine w-full mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-black py-5 rounded-3xl shadow-2xl shadow-indigo-200 active-scale transition-all flex items-center justify-center gap-3 text-lg">
                                 開啟我的重整之旅 <Icon name="arrow-right" size={24} />
                             </button>
+                            <Footer />
                         </div>
                     )}
                 </div>
@@ -513,7 +516,6 @@
 
                 return (
                     <div className="animate-page flex flex-col min-h-screen bg-[#f8fafc]">
-                        {/* 系統通知權限柔性導引欄 */}
                         {notificationPermission === 'default' && (
                             <div className="bg-indigo-50 border-b border-indigo-100 px-6 py-3 flex items-center justify-between text-xs font-bold text-indigo-900 gap-3">
                                 <div className="flex items-center gap-2">
@@ -529,7 +531,6 @@
                             </div>
                         )}
 
-                        {/* 鬧鐘提醒內部彈窗 (修復：點擊「現在就去做」時立即切換版面，並清除 triggeredAlarm 以便顯示詳細任務引導) */}
                         {triggeredAlarm && (
                             <div className="fixed inset-0 z-[100] overlay-blur flex items-center justify-center p-6">
                                 <div className="bg-white w-full max-w-xs rounded-[2.5rem] p-8 text-center animate-pop shadow-2xl border-2 border-slate-100">
@@ -542,9 +543,9 @@
                                         onClick={() => {
                                             const taskInfo = CATEGORIES.flatMap(c => c.items).find(i => i.name === triggeredAlarm);
                                             setAppMode('tracking');
-                                            setTriggeredAlarm(null); // 立即關閉提醒彈窗
+                                            setTriggeredAlarm(null);
                                             if (taskInfo) {
-                                                setActiveRitual(taskInfo); // 開啟細節引導
+                                                setActiveRitual(taskInfo);
                                             }
                                         }}
                                         className={`w-full py-4 rounded-2xl text-white font-black shadow-lg mb-3 active-scale ${currentTheme.fill}`}
@@ -556,14 +557,12 @@
                             </div>
                         )}
 
-                        {/* 設定鬧鐘時間彈窗 */}
                         {alarmSettingTask && (
                             <div className="fixed inset-0 z-[90] overlay-blur flex items-center justify-center p-6">
                                 <div className="bg-white w-full max-w-xs rounded-[2.5rem] p-8 animate-pop shadow-2xl">
                                     <h3 className="text-xl font-black text-slate-800 mb-1 text-center">設定提醒時間</h3>
                                     <p className="text-slate-400 text-[10px] font-bold text-center mb-6 leading-relaxed">{alarmSettingTask}</p>
                                     
-                                    {/* 提醒用戶授權通知權限 */}
                                     {notificationPermission !== 'granted' && (
                                         <div onClick={requestPermission} className="mb-4 p-2 bg-amber-50 rounded-xl border border-amber-100 text-[10px] text-amber-700 font-bold flex items-center gap-1.5 cursor-pointer hover:bg-amber-100">
                                             <Icon name="alert-triangle" size={12} />
@@ -595,7 +594,6 @@
                             </div>
                         )}
 
-                        {/* 達成所有目標的慶祝畫面 */}
                         {showSuccessToast && (
                             <div className="fixed inset-0 z-[60] flex items-center justify-center p-8 bg-slate-900/40 backdrop-blur-sm">
                                 <div className={`bg-white rounded-[3rem] p-8 text-center shadow-2xl animate-pop border-4 ${currentTheme.border}`}>
@@ -608,7 +606,6 @@
                             </div>
                         )}
 
-                        {/* 引導儀式與放鬆說明視窗 (修復：關閉後完美落回今日挑戰主畫面) */}
                         {activeRitual && activeTheme && (
                             <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/60 backdrop-blur-md p-4">
                                 <div className="bg-white w-full max-w-sm rounded-[3rem] p-8 animate-pop shadow-2xl relative overflow-hidden">
@@ -641,7 +638,6 @@
                             </div>
                         )}
 
-                        {/* 客製化精緻重置確認彈窗 */}
                         {showResetConfirm && (
                             <div className="fixed inset-0 z-[110] overlay-blur flex items-center justify-center p-6">
                                 <div className="bg-white w-full max-w-xs rounded-[2.5rem] p-8 text-center animate-pop shadow-2xl border border-red-100">
@@ -668,7 +664,6 @@
                             </div>
                         )}
 
-                        {/* 頂部里程碑與進度展示 */}
                         <div className="bg-white px-6 pt-12 pb-8 rounded-b-[3rem] shadow-sm border-b border-slate-100 relative overflow-hidden">
                             <div className="absolute top-0 right-0 p-8 opacity-5"><Icon name="cloud-moon" size={120} /></div>
                             <div className="flex justify-between items-center mb-6">
@@ -685,19 +680,20 @@
                             <div className="flex justify-between text-[10px] font-bold text-slate-400"><span>起點</span><span>{currentDayNum < 1 ? 0 : Math.round(progressPercent)}%</span><span>終點</span></div>
                         </div>
 
-                        {/* 今日核心挑戰清單 */}
                         <div className="flex-1 p-6 overflow-y-auto no-scrollbar pb-24">
                             {currentDayNum < 1 ? (
                                 <div className="text-center py-10 space-y-6">
                                     <div className={`w-24 h-24 ${currentTheme.bg} rounded-full flex items-center justify-center mx-auto float-icon`}><Icon name="calendar-clock" className={currentTheme.fill.replace('bg-', 'text-')} size={48} /></div>
                                     <div><h3 className="text-2xl font-black text-slate-900">期待旅程開始！</h3><p className="text-slate-500 mt-2 px-6">你的挑戰將於 <b>{startDate}</b> 正式開啟。</p></div>
                                     <button onClick={() => {setAppMode('setup'); setSetupStep(2);}} className="bg-slate-900 text-white px-8 py-4 rounded-2xl font-black shadow-xl active-scale">更改開始日期</button>
+                                    <Footer />
                                 </div>
                             ) : isFinished ? (
                                 <div className="text-center py-10 space-y-6">
                                     <div className="w-24 h-24 bg-yellow-100 rounded-full flex items-center justify-center mx-auto float-icon"><Icon name="trophy" className="text-yellow-600" size={48} /></div>
                                     <div><h3 className="text-2xl font-black text-slate-900">太棒了，完成挑戰！</h3><p className="text-slate-500 mt-2 px-6">你已經成功掌握了自己的睡眠節奏。</p></div>
                                     <button onClick={() => setShowResetConfirm(true)} className="bg-slate-900 text-white px-8 py-4 rounded-2xl font-black shadow-xl active-scale">展開新旅程</button>
+                                    <Footer />
                                 </div>
                             ) : (
                                 <div className="space-y-6">
@@ -762,6 +758,7 @@
                                             return <div key={i} className={`h-8 rounded-lg flex items-center justify-center text-[10px] font-black ${isPast ? `${currentTheme.bg} ${currentTheme.fill.replace('bg-', 'text-')}` : isToday ? `${currentTheme.fill} text-white ring-4 ${currentTheme.bg}` : 'bg-slate-200 text-slate-400'}`}>{dNum}</div>;
                                         })}
                                     </div>
+                                    <Footer />
                                 </div>
                             )}
                         </div>
