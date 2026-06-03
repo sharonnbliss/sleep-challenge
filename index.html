@@ -216,6 +216,7 @@
             const [showResetConfirm, setShowResetConfirm] = useState(false);
             const [notificationPermission, setNotificationPermission] = useState('default');
 
+            // 讀取本地快取
             useEffect(() => {
                 try {
                     const saved = localStorage.getItem('SleepApp_V4_FinalUpdate');
@@ -233,12 +234,12 @@
                     }
                 } catch (e) { console.warn("無法讀取 localStorage。"); }
 
-                // 檢查並更新通知權限
                 if ('Notification' in window) {
                     setNotificationPermission(Notification.permission);
                 }
             }, []);
 
+            // 儲存本地快取
             useEffect(() => {
                 try {
                     localStorage.setItem('SleepApp_V4_FinalUpdate', JSON.stringify({
@@ -249,7 +250,7 @@
                 if (window.lucide) window.lucide.createIcons();
             }, [appMode, planDuration, startDate, selectedTasks, dailyLogs, activeRitual, taskAlarms, alarmSettingTask, triggeredAlarm]);
 
-            // 當有鬧鐘響起時，讓網頁 Tab 標題動態閃爍，確保即使不看網頁也會被吸引注意
+            // 當有鬧鐘響起時，動態閃爍瀏覽器分頁標題
             useEffect(() => {
                 let interval;
                 if (triggeredAlarm) {
@@ -279,18 +280,20 @@
                         if (time === currentTime && !todayDone.includes(task) && triggeredAlarm !== task) {
                             setTriggeredAlarm(task);
                             
-                            // 觸發原生系統通知 (即使使用者將瀏覽器縮小或切換至別的分頁也能在桌面上看見)
+                            // 觸發原生系統通知
                             if ('Notification' in window && Notification.permission === 'granted') {
                                 try {
                                     const notify = new Notification("重整睡眠之旅 ⏰ 任務提醒", {
                                         body: `現在時間是 ${currentTime}，該執行「${task}」囉！`,
                                         icon: "https://placehold.co/128x128/6366f1/ffffff?text=Sleep",
-                                        requireInteraction: true // 通知會一直停留在桌面上直到使用者關閉或點擊
+                                        requireInteraction: true
                                     });
 
-                                    // 點擊通知返回網頁並直接開啟任務引導
+                                    // 點擊通知時切換至 Tracking 版面並開啟任務詳細引導，同時清空多餘的提醒彈窗
                                     notify.onclick = () => {
                                         window.focus();
+                                        setAppMode('tracking');
+                                        setTriggeredAlarm(null);
                                         const foundTask = CATEGORIES.flatMap(c => c.items).find(i => i.name === task);
                                         if (foundTask) {
                                             setActiveRitual(foundTask);
@@ -307,7 +310,7 @@
                 return () => clearInterval(timer);
             }, [taskAlarms, dailyLogs, appMode, triggeredAlarm]);
 
-            // 向瀏覽器要求發送通知權限
+            // 要求系統通知授權
             const requestPermission = async () => {
                 if ('Notification' in window) {
                     const result = await Notification.requestPermission();
@@ -526,7 +529,7 @@
                             </div>
                         )}
 
-                        {/* 鬧鐘提醒內部彈窗 (雙重提示：保證網頁打開時有明顯阻斷感) */}
+                        {/* 鬧鐘提醒內部彈窗 (修復：點擊「現在就去做」時立即切換版面，並清除 triggeredAlarm 以便顯示詳細任務引導) */}
                         {triggeredAlarm && (
                             <div className="fixed inset-0 z-[100] overlay-blur flex items-center justify-center p-6">
                                 <div className="bg-white w-full max-w-xs rounded-[2.5rem] p-8 text-center animate-pop shadow-2xl border-2 border-slate-100">
@@ -538,7 +541,11 @@
                                     <button 
                                         onClick={() => {
                                             const taskInfo = CATEGORIES.flatMap(c => c.items).find(i => i.name === triggeredAlarm);
-                                            setActiveRitual(taskInfo);
+                                            setAppMode('tracking');
+                                            setTriggeredAlarm(null); // 立即關閉提醒彈窗
+                                            if (taskInfo) {
+                                                setActiveRitual(taskInfo); // 開啟細節引導
+                                            }
                                         }}
                                         className={`w-full py-4 rounded-2xl text-white font-black shadow-lg mb-3 active-scale ${currentTheme.fill}`}
                                     >
@@ -576,7 +583,6 @@
                                                 const timeVal = document.getElementById('timePicker').value;
                                                 setTaskAlarms({...taskAlarms, [alarmSettingTask]: timeVal});
                                                 setAlarmSettingTask(null);
-                                                // 儲存時確認授權
                                                 requestPermission();
                                             }}
                                             className={`w-full py-4 rounded-xl text-white font-black active-scale ${currentTheme.fill}`}
@@ -602,7 +608,7 @@
                             </div>
                         )}
 
-                        {/* 引導儀式與放鬆說明視窗 */}
+                        {/* 引導儀式與放鬆說明視窗 (修復：關閉後完美落回今日挑戰主畫面) */}
                         {activeRitual && activeTheme && (
                             <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/60 backdrop-blur-md p-4">
                                 <div className="bg-white w-full max-w-sm rounded-[3rem] p-8 animate-pop shadow-2xl relative overflow-hidden">
@@ -626,7 +632,7 @@
                                             >
                                                 完成挑戰 <Icon name="check-circle" size={22} />
                                             </button>
-                                            <button onClick={() => setActiveRitual(null)} className="w-full bg-slate-50 text-slate-400 font-bold py-3 rounded-2xl active-scale text-sm">
+                                            <button onClick={() => { setActiveRitual(null); setAppMode('tracking'); }} className="w-full bg-slate-50 text-slate-400 font-bold py-3 rounded-2xl active-scale text-sm">
                                                 稍後再說
                                             </button>
                                         </div>
