@@ -113,19 +113,19 @@
         };
 
         const TASK_THEMES = {
-            '固定時間起床': { color: 'amber', icon: 'alarm-clock', bg: 'bg-amber-50', text: 'text-amber-600', ring: 'ring-amber-100' },
-            '曬日光 (出外曬太陽30-60 分鐘)': { color: 'orange', icon: 'sun', bg: 'bg-orange-50', text: 'text-orange-600', ring: 'ring-orange-100' },
-            '出外做運動 (45-60 分鐘，如：慢跑、快走)': { color: 'emerald', icon: 'bike', bg: 'bg-emerald-50', text: 'text-emerald-600', ring: 'ring-emerald-100' },
-            '避免日間躺在睡床上': { color: 'amber', icon: 'sofa', bg: 'bg-amber-50', text: 'text-amber-600', ring: 'ring-amber-100' },
-            '聽放鬆音樂 (30-45分鐘)': { color: 'indigo', icon: 'music', bg: 'bg-indigo-50', text: 'text-indigo-600', ring: 'ring-indigo-100' },
-            '呼吸練習 (10-15分鐘)': { color: 'sky', icon: 'wind', bg: 'bg-sky-50', text: 'text-sky-600', ring: 'ring-sky-100' },
-            '熱敷 (眼/肩/頸/背)': { color: 'rose', icon: 'thermometer-sun', bg: 'bg-rose-50', text: 'text-rose-600', ring: 'ring-rose-100' },
-            '拉筋伸展運動 (15-20 分鐘)': { color: 'violet', icon: 'flower', bg: 'bg-violet-50', text: 'text-violet-600', ring: 'ring-violet-100' },
-            '減少/避免在中午後飲用有咖啡因飲品 (咖啡、奶茶、茶、可樂)': { color: 'cyan', icon: 'coffee', bg: 'bg-cyan-50', text: 'text-cyan-600', ring: 'ring-cyan-100' },
-            '睡前至少30分鐘停止使用電子產品，如：手機、電視、平板': { color: 'cyan', icon: 'smartphone', bg: 'bg-cyan-50', text: 'text-cyan-600', ring: 'ring-cyan-100' },
-            '避免在床上做和睡眠沒有關係的事，如：看電視/手機、進食': { color: 'cyan', icon: 'bed', bg: 'bg-cyan-50', text: 'text-cyan-600', ring: 'ring-cyan-100' },
-            '等待有睡意才上床': { color: 'cyan', icon: 'cloud-moon', bg: 'bg-cyan-50', text: 'text-cyan-600', ring: 'ring-cyan-100' },
-            '移除臥室內的計時裝置，如：鬧鐘、手提電話': { color: 'cyan', icon: 'watch', bg: 'bg-cyan-50', text: 'text-cyan-600', ring: 'ring-cyan-100' }
+            '固定時間起床': { color: 'amber', icon: 'alarm-clock', bg: 'bg-amber-50', text: 'text-amber-600', ring: 'ring-amber-100', defaultAlarm: '07:30' },
+            '曬日光 (出外曬太陽30-60 分鐘)': { color: 'orange', icon: 'sun', bg: 'bg-orange-50', text: 'text-orange-600', ring: 'ring-orange-100', defaultAlarm: '08:30' },
+            '出外做運動 (45-60 分鐘，如：慢跑、快走)': { color: 'emerald', icon: 'bike', bg: 'bg-emerald-50', text: 'text-emerald-600', ring: 'ring-emerald-100', defaultAlarm: '17:00' },
+            '避免日間躺在睡床上': { color: 'amber', icon: 'sofa', bg: 'bg-amber-50', text: 'text-amber-600', ring: 'ring-amber-100', defaultAlarm: '13:00' },
+            '聽放鬆音樂 (30-45分鐘)': { color: 'indigo', icon: 'music', bg: 'bg-indigo-50', text: 'text-indigo-600', ring: 'ring-indigo-100', defaultAlarm: '21:30' },
+            '呼吸練習 (10-15分鐘)': { color: 'sky', icon: 'wind', bg: 'bg-sky-50', text: 'text-sky-600', ring: 'ring-sky-100', defaultAlarm: '22:00' },
+            '熱敷 (眼/肩/頸/背)': { color: 'rose', icon: 'thermometer-sun', bg: 'bg-rose-50', text: 'text-rose-600', ring: 'ring-rose-100', defaultAlarm: '22:15' },
+            '拉筋伸展運動 (15-20 分鐘)': { color: 'violet', icon: 'flower', bg: 'bg-violet-50', text: 'text-violet-600', ring: 'ring-violet-100', defaultAlarm: '21:45' },
+            '減少/避免在中午後飲用有咖啡因飲品 (咖啡、奶茶、茶、可樂)': { color: 'cyan', icon: 'coffee', bg: 'bg-cyan-50', text: 'text-cyan-600', ring: 'ring-cyan-100', defaultAlarm: '12:00' },
+            '睡前至少30分鐘停止使用電子產品，如：手機、電視、平板': { color: 'cyan', icon: 'smartphone', bg: 'bg-cyan-50', text: 'text-cyan-600', ring: 'ring-cyan-100', defaultAlarm: '22:30' },
+            '避免在床上做和睡眠沒有關係的事，如：看電視/手機、進食': { color: 'cyan', icon: 'bed', bg: 'bg-cyan-50', text: 'text-cyan-600', ring: 'ring-cyan-100', defaultAlarm: '21:00' },
+            '等待有睡意才上床': { color: 'cyan', icon: 'cloud-moon', bg: 'bg-cyan-50', text: 'text-cyan-600', ring: 'ring-cyan-100', defaultAlarm: '23:00' },
+            '移除臥室內的計時裝置，如：鬧鐘、手提電話': { color: 'cyan', icon: 'watch', bg: 'bg-cyan-50', text: 'text-cyan-600', ring: 'ring-cyan-100', defaultAlarm: '22:45' }
         };
 
         const CATEGORIES = [
@@ -140,7 +140,7 @@
                     { name: '固定時間起床', hint: '即使假日也建議維持相同作息' },
                     { name: '曬日光 (出外曬太陽30-60 分鐘)', hint: '光照有助於調節生理時鐘' },
                     { name: '出外做運動 (45-60 分鐘，如：慢跑、快走)', hint: '適度運動能幫助晚間深層睡眠' },
-                    { name: '避免日間躺在睡床上', hint: '床應僅用於睡眠，日間活動應在沙發 or 桌椅進行' }
+                    { name: '避免日間躺在睡床上', hint: '床應僅用於睡眠，日間活動應在沙發或桌椅進行' }
                 ]
             },
             {
@@ -223,8 +223,11 @@
             const [showResetConfirm, setShowResetConfirm] = useState(false);
             const [notificationPermission, setNotificationPermission] = useState('default');
             const [missedTasks, setMissedTasks] = useState([]);
+            const [isIframe, setIsIframe] = useState(false);
 
             useEffect(() => {
+                setIsIframe(window.self !== window.top);
+
                 try {
                     const saved = localStorage.getItem('SleepApp_V4_FinalUpdate');
                     if (saved) {
@@ -273,6 +276,35 @@
                 };
             }, [triggeredAlarm]);
 
+            const triggerSystemNotification = (taskName) => {
+                if ('Notification' in window && Notification.permission === 'granted') {
+                    try {
+                        const notify = new Notification("重整睡眠之旅 ⏰ 任務提醒", {
+                            body: `現在該執行「${taskName}」囉！點擊立刻進行睡眠管理。`,
+                            icon: "https://placehold.co/128x128/6366f1/ffffff?text=Sleep",
+                            requireInteraction: true
+                        });
+
+                        notify.onclick = () => {
+                            try {
+                                window.focus();
+                            } catch (err) {
+                                console.warn("無法自動聚焦視窗，因瀏覽器安全性限制：", err);
+                            }
+                            setAppMode('tracking');
+                            setTriggeredAlarm(null);
+                            const foundTask = CATEGORIES.flatMap(c => c.items).find(i => i.name === taskName);
+                            if (foundTask) {
+                                setActiveRitual(foundTask);
+                            }
+                            notify.close();
+                        };
+                    } catch (err) {
+                        console.warn("通知發送被阻擋：", err);
+                    }
+                }
+            };
+
             useEffect(() => {
                 const timer = setInterval(() => {
                     if (appMode !== 'tracking') return;
@@ -284,38 +316,7 @@
                     Object.entries(taskAlarms).forEach(([task, time]) => {
                         if (time === currentTime && !todayDone.includes(task) && triggeredAlarm !== task) {
                             setTriggeredAlarm(task);
-                            
-                            // 發送系統原生通知 (即使網頁在背景常駐也能提醒)
-                            if ('Notification' in window && Notification.permission === 'granted') {
-                                try {
-                                    const notify = new Notification("重整睡眠之旅 ⏰ 任務提醒", {
-                                        body: `現在時間是 ${currentTime}，該執行「${task}」囉！`,
-                                        icon: "https://placehold.co/128x128/6366f1/ffffff?text=Sleep",
-                                        requireInteraction: true
-                                    });
-
-                                    // 重要修復：使用 try-catch 包裹 window.focus()
-                                    // 確保即使在瀏覽器 Iframe / 沙盒環境中被阻止，仍能正常處理 React 狀態變更回到主版面
-                                    notify.onclick = () => {
-                                        try {
-                                            window.focus();
-                                        } catch (err) {
-                                            console.warn("無法取得視窗焦點（可能因瀏覽器沙盒限制）：", err);
-                                        }
-                                        
-                                        // 即使 focus 失敗，也必須正常更新 React 狀態，確保用戶能看見與操作任務
-                                        setAppMode('tracking');
-                                        setTriggeredAlarm(null);
-                                        const foundTask = CATEGORIES.flatMap(c => c.items).find(i => i.name === task);
-                                        if (foundTask) {
-                                            setActiveRitual(foundTask);
-                                        }
-                                        notify.close();
-                                    };
-                                } catch (err) {
-                                    console.warn("系統通知發送失敗:", err);
-                                }
-                            }
+                            triggerSystemNotification(task);
                         }
                     });
                 }, 10000);
@@ -369,6 +370,15 @@
                 }
             };
 
+            const runFiveSecondsTest = (taskName) => {
+                setAlarmSettingTask(null);
+                requestPermission();
+                setTimeout(() => {
+                    setTriggeredAlarm(taskName);
+                    triggerSystemNotification(taskName);
+                }, 5000);
+            };
+
             const todayStr = new Date().toISOString().split('T')[0];
             const getDayDiff = (start, current) => {
                 const s = new Date(start); s.setHours(0,0,0,0);
@@ -379,6 +389,18 @@
             const currentDayNum = getDayDiff(startDate, todayStr);
             const progressPercent = Math.min(100, Math.max(0, ((currentDayNum - 1) / planDuration) * 100));
             const currentTheme = DURATION_THEMES[planDuration] || DURATION_THEMES[7];
+
+            const handleStartTracking = () => {
+                const updatedAlarms = { ...taskAlarms };
+                selectedTasks.forEach(task => {
+                    if (!updatedAlarms[task]) {
+                        updatedAlarms[task] = TASK_THEMES[task]?.defaultAlarm || "08:00";
+                    }
+                });
+                setTaskAlarms(updatedAlarms);
+                setAppMode('tracking');
+                requestPermission();
+            };
 
             const toggleTask = (taskName) => {
                 const dayLog = dailyLogs[todayStr] || [];
@@ -549,7 +571,7 @@
                                 </div>
                             </div>
 
-                            <button onClick={() => setAppMode('tracking')} className="btn-shine w-full mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-black py-5 rounded-3xl shadow-2xl shadow-indigo-200 active-scale transition-all flex items-center justify-center gap-3 text-lg">
+                            <button onClick={handleStartTracking} className="btn-shine w-full mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-black py-5 rounded-3xl shadow-2xl shadow-indigo-200 active-scale transition-all flex items-center justify-center gap-3 text-lg">
                                 開啟我的重整之旅 <Icon name="arrow-right" size={24} />
                             </button>
                             <Footer />
@@ -568,11 +590,31 @@
 
                 return (
                     <div className="animate-page flex flex-col min-h-screen bg-[#f8fafc]">
-                        {notificationPermission === 'default' && (
+                        
+                        {/* 瀏覽器嵌入警告橫幅 - Iframe 安全限制引導 */}
+                        {isIframe && (
+                            <div className="bg-amber-500 text-white px-6 py-3 flex items-center justify-between text-xs font-black gap-3 shadow-lg z-50">
+                                <div className="flex items-center gap-2">
+                                    <Icon name="alert-triangle" size={16} className="animate-shake" />
+                                    <span>預覽視窗限制了系統通知。請開新視窗以接收鬧鐘！</span>
+                                </div>
+                                <a 
+                                    href={window.location.href} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="bg-white text-amber-700 px-3 py-1.5 rounded-full active-scale flex-shrink-0 flex items-center gap-1"
+                                >
+                                    開新分頁 <Icon name="external-link" size={12} />
+                                </a>
+                            </div>
+                        )}
+
+                        {/* 系統通知權限未授權提示 */}
+                        {!isIframe && notificationPermission !== 'granted' && (
                             <div className="bg-indigo-50 border-b border-indigo-100 px-6 py-3 flex items-center justify-between text-xs font-bold text-indigo-900 gap-3">
                                 <div className="flex items-center gap-2">
                                     <Icon name="bell-ring" size={16} className="text-indigo-600 animate-shake" />
-                                    <span>開啟桌面級通知，背景執行也不漏接任務！</span>
+                                    <span>開啟通知，網頁縮小或在背景也能提醒任務！</span>
                                 </div>
                                 <button 
                                     onClick={requestPermission} 
@@ -583,7 +625,7 @@
                             </div>
                         )}
 
-                        {/* 鬧鐘即時提醒彈窗 */}
+                        {/* 鬧鐘即時提醒彈窗 - 修正 tag 語法錯誤 </</div> */}
                         {triggeredAlarm && (
                             <div className="fixed inset-0 z-[100] overlay-blur flex items-center justify-center p-6">
                                 <div className="bg-white w-full max-w-xs rounded-[2.5rem] p-8 text-center animate-pop shadow-2xl border-2 border-slate-100">
@@ -618,7 +660,7 @@
                                         <Icon name="calendar-clock" size={32} />
                                     </div>
                                     <h3 className="text-xl font-black text-slate-800 mb-2 text-center">漏接任務提示</h3>
-                                    <p className="text-slate-400 text-xs font-bold text-center mb-6 leading-relaxed">我們注意到您在離開期間遺漏了以下已設定提醒的任務：</p>
+                                    <p className="text-slate-400 text-xs font-bold text-center mb-6 leading-relaxed">離開網頁期間您遺漏了以下已設定提醒的任務：</p>
                                     
                                     <div className="max-h-36 overflow-y-auto no-scrollbar space-y-2 mb-6">
                                         {missedTasks.map(t => (
@@ -648,7 +690,7 @@
                             </div>
                         )}
 
-                        {/* 設定提醒時間彈窗 */}
+                        {/* 設定提醒時間彈窗 + 5秒極速測試功能 */}
                         {alarmSettingTask && (
                             <div className="fixed inset-0 z-[90] overlay-blur flex items-center justify-center p-6">
                                 <div className="bg-white w-full max-w-xs rounded-[2.5rem] p-8 animate-pop shadow-2xl">
@@ -656,9 +698,9 @@
                                     <p className="text-slate-400 text-[10px] font-bold text-center mb-6 leading-relaxed">{alarmSettingTask}</p>
                                     
                                     {notificationPermission !== 'granted' && (
-                                        <div onClick={requestPermission} className="mb-4 p-2 bg-amber-50 rounded-xl border border-amber-100 text-[10px] text-amber-700 font-bold flex items-center gap-1.5 cursor-pointer hover:bg-amber-100">
-                                            <Icon name="alert-triangle" size={12} />
-                                            <span>系統通知權限未開啟。點擊此處允許權限。</span>
+                                        <div onClick={requestPermission} className="mb-4 p-2.5 bg-amber-50 rounded-xl border border-amber-100 text-[10px] text-amber-700 font-bold flex items-center gap-1.5 cursor-pointer hover:bg-amber-100">
+                                            <Icon name="alert-triangle" size={12} className="flex-shrink-0" />
+                                            <span>權限未開啟。點擊此處允許權限。</span>
                                         </div>
                                     )}
 
@@ -666,8 +708,9 @@
                                         type="time" 
                                         defaultValue={taskAlarms[alarmSettingTask] || "08:00"}
                                         id="timePicker"
-                                        className="w-full text-4xl font-black text-center py-4 bg-slate-50 rounded-2xl mb-6 text-indigo-600 focus:outline-none"
+                                        className="w-full text-4xl font-black text-center py-4 bg-slate-50 rounded-2xl mb-4 text-indigo-600 focus:outline-none"
                                     />
+
                                     <div className="flex flex-col gap-2">
                                         <button 
                                             onClick={() => {
@@ -680,7 +723,16 @@
                                         >
                                             儲存設定
                                         </button>
-                                        <button onClick={() => setAlarmSettingTask(null)} className="py-2 text-slate-400 font-bold">取消</button>
+                                        
+                                        {/* 5 秒測試按鈕 */}
+                                        <button 
+                                            onClick={() => runFiveSecondsTest(alarmSettingTask)}
+                                            className="w-full py-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-xl text-xs font-black active-scale flex items-center justify-center gap-1.5"
+                                        >
+                                            <Icon name="zap" size={14} /> 🚀 測試 5 秒後鬧鐘
+                                        </button>
+
+                                        <button onClick={() => setAlarmSettingTask(null)} className="py-2 text-slate-400 font-bold text-sm">取消</button>
                                     </div>
                                 </div>
                             </div>
@@ -731,6 +783,7 @@
                             </div>
                         )}
 
+                        {/* 客製確認重置彈窗 */}
                         {showResetConfirm && (
                             <div className="fixed inset-0 z-[110] overlay-blur flex items-center justify-center p-6">
                                 <div className="bg-white w-full max-w-xs rounded-[2.5rem] p-8 text-center animate-pop shadow-2xl border border-red-100">
@@ -806,14 +859,25 @@
                                                     >
                                                         <Icon name={done ? "check" : theme.icon} size={24} />
                                                     </div>
-                                                    <div className="flex-1 cursor-pointer" onClick={() => toggleTask(taskName)}>
-                                                        <span className={`text-sm font-bold block leading-tight ${done ? `${currentTheme.text}/40 line-through` : 'text-slate-700'}`}>{taskName}</span>
+                                                    
+                                                    {/* 點擊文字可以進行打卡；如果已經啟用鬧鐘，點擊時間標籤可隨時修改鬧鐘時間 */}
+                                                    <div className="flex-1 cursor-pointer">
+                                                        <span onClick={() => toggleTask(taskName)} className={`text-sm font-bold block leading-tight ${done ? `${currentTheme.text}/40 line-through` : 'text-slate-700'}`}>{taskName}</span>
                                                         {alarmTime && !done && (
-                                                            <span className="text-[10px] font-black text-indigo-400 flex items-center gap-1 mt-1">
-                                                                <Icon name="bell" size={10} /> {alarmTime} 提醒
+                                                            <span 
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setAlarmSettingTask(taskName);
+                                                                }}
+                                                                className="text-[10px] font-black text-indigo-400 flex items-center gap-1 mt-1 hover:text-indigo-600 transition-colors cursor-pointer"
+                                                                title="點擊修改時間"
+                                                            >
+                                                                <Icon name="bell" size={10} /> {alarmTime} 提醒 (點擊修改)
                                                             </span>
                                                         )}
                                                     </div>
+                                                    
+                                                    {/* 最右側鬧鐘控制 */}
                                                     {!done && (
                                                         <div className="flex items-center">
                                                             {alarmTime ? (
