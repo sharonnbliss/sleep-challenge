@@ -222,8 +222,6 @@
             const [triggeredAlarm, setTriggeredAlarm] = useState(null);
             const [showResetConfirm, setShowResetConfirm] = useState(false);
             const [notificationPermission, setNotificationPermission] = useState('default');
-            
-            // 新增：未接獲/漏接提醒任務狀態，用來儲存離線期間遺漏的打卡任務
             const [missedTasks, setMissedTasks] = useState([]);
 
             useEffect(() => {
@@ -287,7 +285,7 @@
                         if (time === currentTime && !todayDone.includes(task) && triggeredAlarm !== task) {
                             setTriggeredAlarm(task);
                             
-                            // 發送系統原生通知 (即使分頁在背景常駐也能提醒)
+                            // 發送系統原生通知 (即使網頁在背景常駐也能提醒)
                             if ('Notification' in window && Notification.permission === 'granted') {
                                 try {
                                     const notify = new Notification("重整睡眠之旅 ⏰ 任務提醒", {
@@ -296,8 +294,16 @@
                                         requireInteraction: true
                                     });
 
+                                    // 重要修復：使用 try-catch 包裹 window.focus()
+                                    // 確保即使在瀏覽器 Iframe / 沙盒環境中被阻止，仍能正常處理 React 狀態變更回到主版面
                                     notify.onclick = () => {
-                                        window.focus();
+                                        try {
+                                            window.focus();
+                                        } catch (err) {
+                                            console.warn("無法取得視窗焦點（可能因瀏覽器沙盒限制）：", err);
+                                        }
+                                        
+                                        // 即使 focus 失敗，也必須正常更新 React 狀態，確保用戶能看見與操作任務
                                         setAppMode('tracking');
                                         setTriggeredAlarm(null);
                                         const foundTask = CATEGORIES.flatMap(c => c.items).find(i => i.name === task);
@@ -327,7 +333,6 @@
 
                     const missed = [];
                     Object.entries(taskAlarms).forEach(([task, time]) => {
-                        // 如果該任務已被選定、今天還沒打卡，且設定的鬧鐘時間小於當前時間
                         if (selectedTasks.has(task) && !todayDone.includes(task)) {
                             const [alarmH, alarmM] = time.split(':').map(Number);
                             if (alarmH < currentHour || (alarmH === currentHour && alarmM < currentMinute)) {
@@ -343,7 +348,6 @@
                     }
                 };
 
-                // 當初次啟動網頁，或是使用者重新聚焦回到網頁分頁時，立即校對
                 checkMissedAlarms();
                 
                 const handleVisibilityChange = () => {
@@ -400,7 +404,6 @@
                 setDailyLogs({ ...dailyLogs, [todayStr]: newLog });
                 setActiveRitual(null);
                 setTriggeredAlarm(null);
-                // 同步將該任務移出漏接列表
                 setMissedTasks(prev => prev.filter(t => t.name !== taskName));
             };
 
@@ -580,7 +583,7 @@
                             </div>
                         )}
 
-                        {/* 鬧鐘當下即時觸發提醒彈窗 */}
+                        {/* 鬧鐘即時提醒彈窗 */}
                         {triggeredAlarm && (
                             <div className="fixed inset-0 z-[100] overlay-blur flex items-center justify-center p-6">
                                 <div className="bg-white w-full max-w-xs rounded-[2.5rem] p-8 text-center animate-pop shadow-2xl border-2 border-slate-100">
@@ -607,7 +610,7 @@
                             </div>
                         )}
 
-                        {/* 離線漏接任務提示彈窗 (Missed Reminders Modal) */}
+                        {/* 離線漏接提醒彈窗 */}
                         {missedTasks.length > 0 && !triggeredAlarm && (
                             <div className="fixed inset-0 z-[95] overlay-blur flex items-center justify-center p-6">
                                 <div className="bg-white w-full max-w-xs rounded-[2.5rem] p-8 animate-pop shadow-2xl border-2 border-rose-100">
@@ -645,7 +648,7 @@
                             </div>
                         )}
 
-                        {/* 設定鬧鐘時間彈窗 */}
+                        {/* 設定提醒時間彈窗 */}
                         {alarmSettingTask && (
                             <div className="fixed inset-0 z-[90] overlay-blur flex items-center justify-center p-6">
                                 <div className="bg-white w-full max-w-xs rounded-[2.5rem] p-8 animate-pop shadow-2xl">
@@ -695,6 +698,7 @@
                             </div>
                         )}
 
+                        {/* 放鬆儀式引導彈窗 */}
                         {activeRitual && activeTheme && (
                             <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/60 backdrop-blur-md p-4">
                                 <div className="bg-white w-full max-w-sm rounded-[3rem] p-8 animate-pop shadow-2xl relative overflow-hidden">
