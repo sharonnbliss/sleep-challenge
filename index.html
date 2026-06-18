@@ -2,21 +2,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>重整睡眠之旅 - 系統通知版</title>
+    <title>重整睡眠之旅 - 智慧活力鼓勵版</title>
+    <!-- 使用標準的 link 方式載入 Noto Sans 字體，避免 CSS @import 造成解析衝突 -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght=400;500;700;900&display=swap">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- 鎖定 UMD 穩定版，不使用 @latest，確保不含任何模組化 import/export 語法 -->
+    <script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+    
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
-        
-        :root {
-            --primary: #6366f1;
-            --success: #10b981;
-            --warning: #f59e0b;
-        }
-
         body {
             font-family: 'Noto Sans TC', sans-serif;
             background-color: #fcfcfd;
@@ -81,7 +77,7 @@
             0% { transform: scale(0.8); opacity: 0; }
             100% { transform: scale(1); opacity: 1; }
         }
-        .animate-pop { animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.27) forwards; }
+        .animate-pop { animation: popIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.27) forwards; }
 
         @keyframes shake {
             0%, 100% { transform: rotate(0deg); }
@@ -89,6 +85,33 @@
             75% { transform: rotate(5deg); }
         }
         .animate-shake { animation: shake 0.5s ease-in-out infinite; }
+
+        @keyframes celebrateSpark {
+            0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.9; }
+            50% { transform: scale(1.15) rotate(10deg); opacity: 1; }
+        }
+        .animate-celebrate { animation: celebrateSpark 2.5s infinite ease-in-out; }
+
+        @keyframes burstConfetti {
+            0% {
+                transform: translate(0, 0) scale(0) rotate(0deg);
+                opacity: 0;
+            }
+            15% {
+                opacity: 1;
+                transform: translate(0, -10px) scale(1.2) rotate(45deg);
+            }
+            100% {
+                transform: translate(var(--tx), var(--ty)) scale(0.5) rotate(var(--rot));
+                opacity: 0;
+            }
+        }
+        .confetti-burst {
+            position: absolute;
+            animation: burstConfetti 2s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+            pointer-events: none;
+            z-index: 150;
+        }
 
         .overlay-blur {
             background: rgba(15, 23, 42, 0.7);
@@ -105,12 +128,63 @@
 <body class="overflow-x-hidden safe-area-inset-top">
     <div id="root"></div>
 
+    <!-- 移除了 data-type="module" 屬性，並在內聯腳本頂部加入經典編譯指令，徹底解決 'react/jsx-runtime' 導入錯誤 -->
     <script type="text/babel">
+        /** @jsxRuntime classic */
+        /** @jsx React.createElement */
         const { useState, useEffect } = React;
 
         const Icon = ({ name, className = "w-5 h-5", size = 24 }) => {
             return <i data-lucide={name} className={className} style={{ width: size, height: size }}></i>;
         };
+
+        // 療癒手繪風 - 小睡雲 (Sleeping Cloud)
+        const SleepingCloudSVG = ({ className = "w-32 h-32 float-icon" }) => (
+            <svg viewBox="0 0 100 100" className={className}>
+                <path d="M25,65 a15,15 0 0,1 0,-25 a18,18 0 0,1 36,-5 a16,16 0 0,1 22,10 a15,15 0 0,1 -4,28 z" fill="#e0e7ff" stroke="#6366f1" strokeWidth="3.5" strokeLinejoin="round" />
+                <path d="M36,54 q3,4 6,0" fill="none" stroke="#4338ca" strokeWidth="3" strokeLinecap="round" />
+                <path d="M52,54 q3,4 6,0" fill="none" stroke="#4338ca" strokeWidth="3" strokeLinecap="round" />
+                <circle cx="32" cy="58" r="4" fill="#fda4af" opacity="0.8" />
+                <circle cx="62" cy="58" r="4" fill="#fda4af" opacity="0.8" />
+                <path d="M43,36 q-10,-12 -20,-3 q0,10 13,8 z" fill="#818cf8" stroke="#4338ca" strokeWidth="2.5" />
+                <circle cx="21" cy="31" r="3.5" fill="#ffffff" stroke="#4338ca" strokeWidth="2" />
+                <polygon points="76,28 78,33 83,33 79,36 81,41 76,38 72,41 74,36 70,33 75,33" fill="#fef08a" />
+            </svg>
+        );
+
+        // 活力手繪風 - 能量小星星 (Smiling Star)
+        const GlowingStarSVG = ({ className = "w-32 h-32 animate-celebrate" }) => (
+            <svg viewBox="0 0 100 100" className={className}>
+                <polygon points="50,6 63,35 95,35 69,55 79,88 50,68 21,88 31,55 5,35 37,35" fill="#fef08a" stroke="#eab308" strokeWidth="3.5" strokeLinejoin="round" />
+                <circle cx="39" cy="46" r="3" fill="#854d0e" />
+                <circle cx="61" cy="46" r="3" fill="#854d0e" />
+                <circle cx="34" cy="51" r="3" fill="#fca5a5" />
+                <circle cx="66" cy="51" r="3" fill="#fca5a5" />
+                <path d="M45,54 q5,5 10,0" fill="none" stroke="#854d0e" strokeWidth="3" strokeLinecap="round" />
+                <path d="M12,12 L18,18 M88,12 L82,18" stroke="#f59e0b" strokeWidth="3" strokeLinecap="round" />
+            </svg>
+        );
+
+        // 專屬精緻立體大獎盃 SVG (免去外部圖示庫異步加載衝突，確保 100% 渲染成功)
+        const TrophySVG = ({ className = "w-24 h-24" }) => (
+            <svg viewBox="0 0 100 100" className={className}>
+                <ellipse cx="50" cy="85" rx="26" ry="5" fill="#e2e8f0" />
+                <path d="M30,80 L70,80 L65,85 L35,85 Z" fill="#64748b" />
+                <rect x="42" y="68" width="16" height="12" fill="#475569" rx="2" />
+                <path d="M40,68 L60,68 L58,72 L42,72 Z" fill="#334155" />
+                <path d="M46,50 L54,50 L54,68 L46,68 Z" fill="#d97706" />
+                <path d="M25,23 C25,48 40,52 50,52 C60,52 75,48 75,23 L25,23 Z" fill="#f59e0b" stroke="#d97706" strokeWidth="3" strokeLinejoin="round" />
+                <path d="M32,23 C32,43 42,46 50,46 C58,46 68,43 68,23 L32,23 Z" fill="#fbbf24" />
+                <path d="M50,15 L50,52" stroke="#f59e0b" strokeWidth="1.5" opacity="0.3" />
+                <path d="M25,28 C12,28 12,43 25,43" fill="none" stroke="#d97706" strokeWidth="3.5" strokeLinecap="round" />
+                <path d="M25,28 C15,28 15,43 25,43" fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" />
+                <path d="M75,28 C88,28 88,43 75,43" fill="none" stroke="#d97706" strokeWidth="3.5" strokeLinecap="round" />
+                <path d="M75,28 C85,28 85,43 75,43" fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" />
+                <circle cx="21" cy="18" r="2" fill="#fbbf24" />
+                <circle cx="79" cy="18" r="2" fill="#fbbf24" />
+                <polygon points="50,28 53,34 60,35 55,40 56,46 50,43 44,46 45,40 40,35 47,34" fill="#ffffff" />
+            </svg>
+        );
 
         const TASK_THEMES = {
             '固定時間起床': { color: 'amber', icon: 'alarm-clock', bg: 'bg-amber-50', text: 'text-amber-600', ring: 'ring-amber-100', defaultAlarm: '07:30' },
@@ -140,7 +214,7 @@
                     { name: '固定時間起床', hint: '即使假日也建議維持相同作息' },
                     { name: '曬日光 (出外曬太陽30-60 分鐘)', hint: '光照有助於調節生理時鐘' },
                     { name: '出外做運動 (45-60 分鐘，如：慢跑、快走)', hint: '適度運動能幫助晚間深層睡眠' },
-                    { name: '避免日間躺在睡床上', hint: '床應僅用於睡眠，日間活動應在沙發或桌椅進行' }
+                    { name: '避免日間躺在睡床上', hint: '床應僅用於睡眠，日間活動應在沙發 or 桌椅進行' }
                 ]
             },
             {
@@ -151,8 +225,8 @@
                 bgClass: 'bg-cyan-50/70',
                 borderClass: 'border-cyan-200',
                 items: [
-                    { name: '減少/避免在中午後飲用有咖啡因飲品 (咖啡、奶茶、茶、可樂)', hint: '咖啡因會干擾腺苷發揮作用' },
-                    { name: '睡前至少30分鐘停止使用電子產品，如：手機、電視、平板', hint: '藍光會抑制褪黑激素分泌' },
+                    { name: '減少/避免在中午後飲用有咖啡因飲品 (咖啡、奶茶、茶、可樂)', hint: '咖啡因會干擾大腦化學機制' },
+                    { name: '睡前至少30分鐘停止使用電子產品，如：手機、電視、平板', hint: '藍光會顯著抑制褪黑激素分泌' },
                     { name: '避免在床上做和睡眠沒有關係的事，如：看電視/手機、進食', hint: '強化大腦對床與睡眠的連結' },
                     { name: '等待有睡意才上床', hint: '避免在床上清醒掙扎而產生焦慮' },
                     { name: '移除臥室內的計時裝置，如：鬧鐘、手提電話', hint: '減少半夜看時間產生的壓力' }
@@ -201,6 +275,15 @@
             }
         };
 
+        const ENCOURAGING_QUOTES = [
+            "每一點微小的改變，都在為今晚的優質睡眠奠定基石！",
+            "做得太棒了！你的身體與大腦正在感謝你的溫柔呵護。",
+            "規律與放鬆，是給予生理時鐘最完美的自然禮物！",
+            "太精彩了，健康生活是一場累積，今天也完美加分！",
+            "放慢腳步，保持今天的優秀節奏，祝你今晚好夢甜甜。"
+        ];
+
+        // 頁尾標籤 - 低調且精緻地標註製作單位：QEH OT
         const Footer = () => (
             <div className="w-full flex items-center justify-center gap-1.5 py-6 mt-2 text-slate-300 text-[11px] font-bold tracking-widest">
                 <Icon name="heart" size={12} className="text-red-300/60 fill-red-300/20" />
@@ -216,6 +299,8 @@
             const [selectedTasks, setSelectedTasks] = useState(new Set());
             const [dailyLogs, setDailyLogs] = useState({});
             const [taskAlarms, setTaskAlarms] = useState({});
+            const [trackingStartedAt, setTrackingStartedAt] = useState(null);
+
             const [showSuccessToast, setShowSuccessToast] = useState(false);
             const [activeRitual, setActiveRitual] = useState(null);
             const [alarmSettingTask, setAlarmSettingTask] = useState(null);
@@ -225,11 +310,17 @@
             const [missedTasks, setMissedTasks] = useState([]);
             const [isIframe, setIsIframe] = useState(false);
 
+            const [showSingleEncouragement, setShowSingleEncouragement] = useState(false);
+            const [currentQuote, setCurrentQuote] = useState("");
+            const [mascotType, setMascotType] = useState('cloud'); 
+            const [confettiArray, setConfettiArray] = useState([]);
+
+            // 載入 localStorage
             useEffect(() => {
                 setIsIframe(window.self !== window.top);
 
                 try {
-                    const saved = localStorage.getItem('SleepApp_V4_FinalUpdate');
+                    const saved = localStorage.getItem('SleepApp_V5_Encouraged');
                     if (saved) {
                         const data = JSON.parse(saved);
                         if (data.appMode) setAppMode(data.appMode);
@@ -238,6 +329,7 @@
                         if (data.selectedTasks) setSelectedTasks(new Set(data.selectedTasks));
                         if (data.dailyLogs) setDailyLogs(data.dailyLogs);
                         if (data.taskAlarms) setTaskAlarms(data.taskAlarms);
+                        if (data.trackingStartedAt) setTrackingStartedAt(data.trackingStartedAt);
                         if (data.selectedTasks && data.selectedTasks.length > 0 && data.appMode === 'setup') {
                             setSetupStep(2);
                         }
@@ -249,16 +341,22 @@
                 }
             }, []);
 
+            // 在每次狀態變更與渲染完畢後，執行 Lucide 的 DOM 轉換重繪
+            useEffect(() => {
+                if (window.lucide) window.lucide.createIcons();
+            });
+
+            // 儲存至 localStorage
             useEffect(() => {
                 try {
-                    localStorage.setItem('SleepApp_V4_FinalUpdate', JSON.stringify({
-                        appMode, planDuration, startDate, dailyLogs, taskAlarms,
+                    localStorage.setItem('SleepApp_V5_Encouraged', JSON.stringify({
+                        appMode, planDuration, startDate, dailyLogs, taskAlarms, trackingStartedAt,
                         selectedTasks: Array.from(selectedTasks)
                     }));
                 } catch (e) {}
-                if (window.lucide) window.lucide.createIcons();
-            }, [appMode, planDuration, startDate, selectedTasks, dailyLogs, activeRitual, taskAlarms, alarmSettingTask, triggeredAlarm]);
+            }, [appMode, planDuration, startDate, selectedTasks, dailyLogs, activeRitual, taskAlarms, alarmSettingTask, triggeredAlarm, showSingleEncouragement, showSuccessToast, trackingStartedAt]);
 
+            // 定時標題快閃提醒
             useEffect(() => {
                 let interval;
                 if (triggeredAlarm) {
@@ -276,6 +374,7 @@
                 };
             }, [triggeredAlarm]);
 
+            // 系統級通知觸發
             const triggerSystemNotification = (taskName) => {
                 if ('Notification' in window && Notification.permission === 'granted') {
                     try {
@@ -289,7 +388,7 @@
                             try {
                                 window.focus();
                             } catch (err) {
-                                console.warn("無法自動聚焦視窗，因瀏覽器安全性限制：", err);
+                                console.warn("無法自動聚焦視窗：", err);
                             }
                             setAppMode('tracking');
                             setTriggeredAlarm(null);
@@ -305,6 +404,7 @@
                 }
             };
 
+            // 鬧鐘定時檢測機制
             useEffect(() => {
                 const timer = setInterval(() => {
                     if (appMode !== 'tracking') return;
@@ -323,20 +423,31 @@
                 return () => clearInterval(timer);
             }, [taskAlarms, dailyLogs, appMode, triggeredAlarm]);
 
+            // 智慧離線漏接鬧鐘偵測 (起跑線過濾機制)
             useEffect(() => {
                 const checkMissedAlarms = () => {
                     if (appMode !== 'tracking') return;
                     const now = new Date();
                     const currentHour = now.getHours();
                     const currentMinute = now.getMinutes();
-                    const todayStr = new Date().toISOString().split('T')[0];
+                    const todayStr = now.toISOString().split('T')[0];
                     const todayDone = dailyLogs[todayStr] || [];
 
                     const missed = [];
                     Object.entries(taskAlarms).forEach(([task, time]) => {
                         if (selectedTasks.has(task) && !todayDone.includes(task)) {
                             const [alarmH, alarmM] = time.split(':').map(Number);
+                            
+                            const alarmDate = new Date();
+                            alarmDate.setHours(alarmH, alarmM, 0, 0);
+
                             if (alarmH < currentHour || (alarmH === currentHour && alarmM < currentMinute)) {
+                                if (trackingStartedAt) {
+                                    const startedDate = new Date(trackingStartedAt);
+                                    if (alarmDate.getTime() < startedDate.getTime()) {
+                                        return; 
+                                    }
+                                }
                                 missed.push({ name: task, time });
                             }
                         }
@@ -361,7 +472,7 @@
                 return () => {
                     document.removeEventListener('visibilitychange', handleVisibilityChange);
                 };
-            }, [taskAlarms, dailyLogs, appMode, selectedTasks]);
+            }, [taskAlarms, dailyLogs, appMode, selectedTasks, trackingStartedAt]);
 
             const requestPermission = async () => {
                 if ('Notification' in window) {
@@ -377,6 +488,31 @@
                     setTriggeredAlarm(taskName);
                     triggerSystemNotification(taskName);
                 }, 5000);
+            };
+
+            // 慶祝紙屑向上噴射擴散演算法
+            const generateConfetti = () => {
+                const colors = ['#f59e0b', '#10b981', '#3b82f6', '#ec4899', '#8b5cf6', '#34d399', '#fcd34d'];
+                const items = [];
+                for (let i = 0; i < 40; i++) {
+                    const angle = (Math.random() * 140 + 20) * (Math.PI / 180); 
+                    const distance = Math.random() * 140 + 50; 
+                    const tx = `${Math.cos(angle) * distance}px`;
+                    const ty = `-${Math.sin(angle) * distance}px`; 
+                    const rot = `${Math.random() * 360 + 360}deg`;
+
+                    items.push({
+                        id: i,
+                        tx,
+                        ty,
+                        rot,
+                        delay: `${Math.random() * 0.3}s`, 
+                        color: colors[Math.floor(Math.random() * colors.length)],
+                        size: `${Math.random() * 8 + 8}px`,
+                        shape: Math.random() > 0.5 ? 'rounded-full' : 'rotate-45'
+                    });
+                }
+                setConfettiArray(items);
             };
 
             const todayStr = new Date().toISOString().split('T')[0];
@@ -398,6 +534,7 @@
                     }
                 });
                 setTaskAlarms(updatedAlarms);
+                setTrackingStartedAt(Date.now()); 
                 setAppMode('tracking');
                 requestPermission();
             };
@@ -419,14 +556,22 @@
                 const taskName = activeRitual.name;
                 const dayLog = dailyLogs[todayStr] || [];
                 let newLog = [...dayLog, taskName];
-                if (newLog.length === selectedTasks.size) {
-                    setShowSuccessToast(true);
-                    setTimeout(() => setShowSuccessToast(false), 3000);
-                }
+                
+                const randomQuote = ENCOURAGING_QUOTES[Math.floor(Math.random() * ENCOURAGING_QUOTES.length)];
+                setCurrentQuote(randomQuote);
+                setMascotType(Math.random() > 0.5 ? 'cloud' : 'star');
+
                 setDailyLogs({ ...dailyLogs, [todayStr]: newLog });
                 setActiveRitual(null);
                 setTriggeredAlarm(null);
                 setMissedTasks(prev => prev.filter(t => t.name !== taskName));
+
+                if (newLog.length === selectedTasks.size) {
+                    generateConfetti();
+                    setShowSuccessToast(true);
+                } else {
+                    setShowSingleEncouragement(true);
+                }
             };
 
             const handleOneClickCancelAlarm = (taskName) => {
@@ -441,6 +586,7 @@
                 setDailyLogs({});
                 setSelectedTasks(new Set());
                 setTaskAlarms({});
+                setTrackingStartedAt(null); 
                 setStartDate(new Date().toISOString().split('T')[0]);
                 setShowResetConfirm(false);
                 setMissedTasks([]);
@@ -456,7 +602,7 @@
                     {setupStep === 1 ? (
                         <div className="animate-page space-y-6 flex-1 overflow-y-auto no-scrollbar pb-8 px-1">
                             <div className="flex items-center justify-center mb-4">
-                                <p className="text-lg font-bold text-slate-800 tracking-tight bg-slate-100 px-6 py-2.5 rounded-full border border-slate-200">
+                                <p className="text-sm font-bold text-slate-800 tracking-tight bg-slate-100 px-5 py-2 rounded-full border border-slate-200">
                                     步驟 1：選擇你想挑戰的習慣
                                 </p>
                             </div>
@@ -478,8 +624,8 @@
                                                 'border-indigo-500 bg-white shadow-md shadow-indigo-100';
                                             
                                             const checkColors = 
-                                                cat.id === 'daytime' ? 'bg-amber-500 border-amber-500' :
-                                                cat.id === 'hygiene' ? 'bg-cyan-500 border-cyan-500' :
+                                                cat.id === 'daytime' ? 'bg-amber-50 border-amber-500' :
+                                                cat.id === 'hygiene' ? 'bg-cyan-50 border-cyan-500' :
                                                 'bg-indigo-600 border-indigo-600';
 
                                             return (
@@ -517,7 +663,7 @@
                     ) : (
                         <div className="animate-page space-y-6 flex-1 overflow-y-auto no-scrollbar pb-8 px-1">
                             <div className="flex items-center justify-center mb-4">
-                                <p className="text-lg font-bold text-slate-800 tracking-tight bg-slate-100 px-6 py-2.5 rounded-full border border-slate-200">
+                                <p className="text-sm font-bold text-slate-800 tracking-tight bg-slate-100 px-5 py-2 rounded-full border border-slate-200">
                                     步驟 2：設定挑戰詳情
                                 </p>
                             </div>
@@ -591,12 +737,12 @@
                 return (
                     <div className="animate-page flex flex-col min-h-screen bg-[#f8fafc]">
                         
-                        {/* 瀏覽器嵌入警告橫幅 - Iframe 安全限制引導 */}
+                        {/* 瀏覽器嵌入警告橫幅 */}
                         {isIframe && (
                             <div className="bg-amber-500 text-white px-6 py-3 flex items-center justify-between text-xs font-black gap-3 shadow-lg z-50">
                                 <div className="flex items-center gap-2">
                                     <Icon name="alert-triangle" size={16} className="animate-shake" />
-                                    <span>預覽視窗限制了系統通知。請開新視窗以接收鬧鐘！</span>
+                                    <span>預覽視窗限制了系統通知。請開新分頁以接收鬧鐘！</span>
                                 </div>
                                 <a 
                                     href={window.location.href} 
@@ -625,7 +771,7 @@
                             </div>
                         )}
 
-                        {/* 鬧鐘即時提醒彈窗 - 修正 tag 語法錯誤 </</div> */}
+                        {/* 鬧鐘即時提醒彈窗 */}
                         {triggeredAlarm && (
                             <div className="fixed inset-0 z-[100] overlay-blur flex items-center justify-center p-6">
                                 <div className="bg-white w-full max-w-xs rounded-[2.5rem] p-8 text-center animate-pop shadow-2xl border-2 border-slate-100">
@@ -690,7 +836,7 @@
                             </div>
                         )}
 
-                        {/* 設定提醒時間彈窗 + 5秒極速測試功能 */}
+                        {/* 設定提醒時間彈窗 */}
                         {alarmSettingTask && (
                             <div className="fixed inset-0 z-[90] overlay-blur flex items-center justify-center p-6">
                                 <div className="bg-white w-full max-w-xs rounded-[2.5rem] p-8 animate-pop shadow-2xl">
@@ -724,7 +870,6 @@
                                             儲存設定
                                         </button>
                                         
-                                        {/* 5 秒測試按鈕 */}
                                         <button 
                                             onClick={() => runFiveSecondsTest(alarmSettingTask)}
                                             className="w-full py-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-xl text-xs font-black active-scale flex items-center justify-center gap-1.5"
@@ -738,19 +883,86 @@
                             </div>
                         )}
 
-                        {showSuccessToast && (
-                            <div className="fixed inset-0 z-[60] flex items-center justify-center p-8 bg-slate-900/40 backdrop-blur-sm">
-                                <div className={`bg-white rounded-[3rem] p-8 text-center shadow-2xl animate-pop border-4 ${currentTheme.border}`}>
-                                    <div className={`w-20 h-20 ${currentTheme.bg} ${currentTheme.fill.replace('bg-', 'text-')} rounded-full flex items-center justify-center mx-auto mb-4`}>
-                                        <Icon name="sparkles" size={40} />
+                        {/* 一項習慣打卡成功時彈出的可愛小鼓勵視窗 */}
+                        {showSingleEncouragement && (
+                            <div className="fixed inset-0 z-[120] overlay-blur flex items-center justify-center p-6">
+                                <div className="bg-white w-full max-sm:mx-4 max-w-sm rounded-[3rem] p-8 text-center animate-pop shadow-2xl border-4 border-indigo-100 relative overflow-hidden">
+                                    
+                                    <div className="w-40 h-40 mx-auto mb-6 bg-indigo-50/70 rounded-full flex items-center justify-center relative shadow-inner">
+                                        <div className="absolute inset-0 bg-indigo-100/30 rounded-full animate-ping opacity-75"></div>
+                                        {mascotType === 'cloud' ? (
+                                            <SleepingCloudSVG className="w-28 h-28 float-icon" />
+                                        ) : (
+                                            <GlowingStarSVG className="w-28 h-28 animate-celebrate" />
+                                        )}
                                     </div>
-                                    <h3 className="text-2xl font-black text-slate-900 mb-2">全數達成！</h3>
-                                    <p className="text-slate-500 font-bold">你完成了今日所有挑戰！</p>
+
+                                    <h3 className="text-2xl font-black text-indigo-950 mb-3">小成就達成！🎉</h3>
+                                    
+                                    <div className="bg-slate-50/80 px-4 py-4 rounded-2xl mb-6 border border-slate-100 shadow-inner">
+                                        <p className="text-slate-600 text-sm font-bold leading-relaxed">
+                                            「{currentQuote}」
+                                        </p>
+                                    </div>
+
+                                    <button 
+                                        onClick={() => setShowSingleEncouragement(false)}
+                                        className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-2xl shadow-lg active-scale transition-all flex items-center justify-center gap-2"
+                                    >
+                                        收到鼓勵，繼續加油！ <Icon name="heart-handshake" size={18} />
+                                    </button>
                                 </div>
                             </div>
                         )}
 
-                        {/* 放鬆儀式引導彈窗 */}
+                        {/* 全數挑戰任務達成時彈出的慶祝大彈窗 (紙屑自大獎盃上方發放) */}
+                        {showSuccessToast && (
+                            <div className="fixed inset-0 z-[140] overlay-blur flex items-center justify-center p-6 overflow-hidden">
+                                <div className={`bg-white w-full max-sm:mx-4 max-w-sm rounded-[3.5rem] p-8 text-center shadow-2xl animate-pop border-4 relative ${currentTheme.border}`}>
+                                    
+                                    <div className="flex flex-col items-center justify-center mb-6 relative">
+                                        {/* 紙屑發射起點精準對齊獎盃上方 */}
+                                        <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-2 h-2 pointer-events-none z-50">
+                                            {confettiArray.map(item => (
+                                                <div 
+                                                    key={item.id} 
+                                                    className={`confetti-burst ${item.shape}`}
+                                                    style={{
+                                                        '--tx': item.tx,
+                                                        '--ty': item.ty,
+                                                        '--rot': item.rot,
+                                                        animationDelay: item.delay,
+                                                        backgroundColor: item.color,
+                                                        width: item.size,
+                                                        height: item.size,
+                                                        left: '50%',
+                                                        top: '50%',
+                                                        marginLeft: `-${parseInt(item.size)/2}px`,
+                                                        marginTop: `-${parseInt(item.size)/2}px`,
+                                                    }}
+                                                />
+                                            ))}
+                                        </div>
+
+                                        <TrophySVG className="w-24 h-24 float-icon drop-shadow-[0_10px_20px_rgba(245,158,11,0.4)] mb-4" />
+                                        <h3 className="text-3xl font-black text-slate-900 mb-2">今天超棒的！</h3>
+                                        <h4 className="text-emerald-600 font-black text-sm tracking-widest">今日挑戰全數圓滿達成！</h4>
+                                    </div>
+
+                                    <button 
+                                        onClick={() => {
+                                            setShowSuccessToast(false);
+                                            setConfettiArray([]);
+                                        }}
+                                        className={`w-full py-4 text-white font-black rounded-2xl shadow-xl active-scale transition-all ${currentTheme.fill}`}
+                                    >
+                                        明天繼續保持！🌟
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* 放鬆儀式引導詳情彈窗 */}
                         {activeRitual && activeTheme && (
                             <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/60 backdrop-blur-md p-4">
                                 <div className="bg-white w-full max-w-sm rounded-[3rem] p-8 animate-pop shadow-2xl relative overflow-hidden">
@@ -810,7 +1022,7 @@
                             </div>
                         )}
 
-                        {/* 頂部打卡狀態卡片 */}
+                        {/* 頂部進度卡片區塊 */}
                         <div className="bg-white px-6 pt-12 pb-8 rounded-b-[3rem] shadow-sm border-b border-slate-100 relative overflow-hidden">
                             <div className="absolute top-0 right-0 p-8 opacity-5"><Icon name="cloud-moon" size={120} /></div>
                             <div className="flex justify-between items-center mb-6">
@@ -827,7 +1039,7 @@
                             <div className="flex justify-between text-[10px] font-bold text-slate-400"><span>起點</span><span>{currentDayNum < 1 ? 0 : Math.round(progressPercent)}%</span><span>終點</span></div>
                         </div>
 
-                        {/* 打卡習慣列表 */}
+                        {/* 打卡計畫列表 */}
                         <div className="flex-1 p-6 overflow-y-auto no-scrollbar pb-24">
                             {currentDayNum < 1 ? (
                                 <div className="text-center py-10 space-y-6">
@@ -837,10 +1049,14 @@
                                     <Footer />
                                 </div>
                             ) : isFinished ? (
-                                <div className="text-center py-10 space-y-6">
-                                    <div className="w-24 h-24 bg-yellow-100 rounded-full flex items-center justify-center mx-auto float-icon"><Icon name="trophy" className="text-yellow-600" size={48} /></div>
-                                    <div><h3 className="text-2xl font-black text-slate-900">太棒了，完成挑戰！</h3><p className="text-slate-500 mt-2 px-6">你已經成功掌握了自己的睡眠節奏。</p></div>
-                                    <button onClick={() => setShowResetConfirm(true)} className="bg-slate-900 text-white px-8 py-4 rounded-2xl font-black shadow-xl active-scale">展開新旅程</button>
+                                <div className="text-center py-10 flex flex-col items-center justify-center">
+                                    {/* 結束成果頁：高質感純 SVG 大獎盃 */}
+                                    <TrophySVG className="float-icon drop-shadow-[0_10px_20px_rgba(245,158,11,0.4)] mb-6" />
+                                    <div className="text-center">
+                                        <h3 className="text-2xl font-black text-slate-900">太棒了，完成挑戰！</h3>
+                                        <p className="text-slate-500 mt-2 px-6">你已經成功掌握了自己的睡眠節奏。</p>
+                                    </div>
+                                    <button onClick={() => setShowResetConfirm(true)} className="mt-8 bg-slate-900 text-white px-8 py-4 rounded-2xl font-black shadow-xl active-scale">展開新旅程</button>
                                     <Footer />
                                 </div>
                             ) : (
@@ -860,7 +1076,6 @@
                                                         <Icon name={done ? "check" : theme.icon} size={24} />
                                                     </div>
                                                     
-                                                    {/* 點擊文字可以進行打卡；如果已經啟用鬧鐘，點擊時間標籤可隨時修改鬧鐘時間 */}
                                                     <div className="flex-1 cursor-pointer">
                                                         <span onClick={() => toggleTask(taskName)} className={`text-sm font-bold block leading-tight ${done ? `${currentTheme.text}/40 line-through` : 'text-slate-700'}`}>{taskName}</span>
                                                         {alarmTime && !done && (
@@ -877,7 +1092,6 @@
                                                         )}
                                                     </div>
                                                     
-                                                    {/* 最右側鬧鐘控制 */}
                                                     {!done && (
                                                         <div className="flex items-center">
                                                             {alarmTime ? (
