@@ -128,10 +128,17 @@
 <body class="overflow-x-hidden safe-area-inset-top">
     <div id="root"></div>
 
-    <!-- 移除了 data-type="module" 屬性，並在內聯腳本頂部加入經典編譯指令，徹底解決 'react/jsx-runtime' 導入錯誤 -->
-    <script type="text/babel">
-        /** @jsxRuntime classic */
-        /** @jsx React.createElement */
+    <!-- 註冊自訂 Babel Preset，強制以 classic 模式編譯 JSX，防止 importSource 衝突並解決 'react/jsx-runtime' 錯誤 -->
+    <script>
+        if (window.Babel) {
+            Babel.registerPreset('custom-react', {
+                presets: [
+                    [Babel.availablePresets['react'], { runtime: 'classic' }]
+                ]
+            });
+        }
+    </script>
+    <script type="text/babel" data-presets="custom-react">
         const { useState, useEffect } = React;
 
         const Icon = ({ name, className = "w-5 h-5", size = 24 }) => {
@@ -596,7 +603,7 @@
                 <div className="animate-page flex flex-col min-h-screen p-6">
                     <header className="mt-12 mb-8 text-center">
                         <h1 className="text-4xl font-black tracking-tight soft-title-shadow">重整睡眠之旅</h1>
-                        <p className="font-bold mt-3 text-xl soft-subtitle-shadow">睡眠管理行動計劃</p>
+                        <p className="font-bold mt-3 text-xl soft-subtitle-shadow">睡眠管理</p>
                     </header>
 
                     {setupStep === 1 ? (
